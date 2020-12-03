@@ -390,7 +390,7 @@ architecture behaviour of fpu is
     -- selects the bits will be lost in doing a right shift.  The shift
     -- parameter is the bottom 6 bits of a negative shift count,
     -- indicating a right shift.
-    function right_mask(shift: unsigned(5 downto 0)) return std_ulogic_vector is
+    function right_mask(shift: unsigned(6 downto 0)) return std_ulogic_vector is
         variable result: std_ulogic_vector(63 downto 0);
     begin
         result := (others => '0');
@@ -2381,7 +2381,7 @@ begin
         elsif mshift >= to_signed(0, EXP_BITS) then
             mask := (others => '0');
         else
-            mask := right_mask(unsigned(mshift(5 downto 0)));
+            mask := right_mask(unsigned('0' & mshift(5 downto 0)));
         end if;
         case r.opsel_a is
             when AIN_R =>

@@ -150,7 +150,7 @@ FPGA_TARGET ?= ORANGE-CRAB
 ifeq ($(FPGA_TARGET), ORANGE-CRAB)
 RESET_LOW=true
 CLK_INPUT=50000000
-CLK_FREQUENCY=40000000
+CLK_FREQUENCY=50000000
 LPF=constraints/orange-crab.lpf
 PACKAGE=CSFBGA285
 NEXTPNR_FLAGS=--um5g-85k --freq 40
@@ -173,7 +173,7 @@ endif
 GHDL_IMAGE_GENERICS=-gMEMORY_SIZE=$(MEMORY_SIZE) -gRAM_INIT_FILE=$(RAM_INIT_FILE) \
 	-gRESET_LOW=$(RESET_LOW) -gCLK_INPUT=$(CLK_INPUT) -gCLK_FREQUENCY=$(CLK_FREQUENCY)
 
-clkgen=fpga/clk_gen_ecp5.vhd
+clkgen=fpga/clk_gen_bypass.vhd
 toplevel=fpga/top-generic.vhdl
 dmi_dtm=dmi_dtm_dummy.vhdl
 

@@ -64,7 +64,7 @@ entity soc is
         SPI_FLASH_DEF_QUAD : boolean := false;
         LOG_LENGTH         : natural := 512;
         HAS_LITEETH        : boolean := false;
-	UART0_IS_16550     : boolean := true;
+	UART0_IS_16550     : boolean := false;
 	HAS_UART1          : boolean := false
 	);
     port(
@@ -209,30 +209,6 @@ architecture behaviour of soc is
                            SLAVE_IO_NONE);
     signal slave_io_dbg : slave_io_type;
 
-    -- This is the component exported by the 16550 compatible
-    -- UART from FuseSoC.
-    --
-    component uart_top port (
-        wb_clk_i    : in std_ulogic;
-        wb_rst_i    : in std_ulogic;
-        wb_adr_i    : in std_ulogic_vector(2 downto 0);
-        wb_dat_i    : in std_ulogic_vector(7 downto 0);
-        wb_dat_o    : out std_ulogic_vector(7 downto 0);
-        wb_we_i     : in std_ulogic;
-        wb_stb_i    : in std_ulogic;
-        wb_cyc_i    : in std_ulogic;
-        wb_ack_o    : out std_ulogic;
-        int_o       : out std_ulogic;
-        stx_pad_o   : out std_ulogic;
-        srx_pad_i   : in std_ulogic;
-        rts_pad_o   : out std_ulogic;
-        cts_pad_i   : in std_ulogic;
-        dtr_pad_o   : out std_ulogic;
-        dsr_pad_i   : in std_ulogic;
-        ri_pad_i    : in std_ulogic;
-        dcd_pad_i   : in std_ulogic
-        );
-    end component;
 begin
 
     resets: process(system_clk)
@@ -673,40 +649,6 @@ begin
 		);
     end generate;
 
-    uart0_16550 : if UART0_IS_16550 generate
-        signal irq_l : std_ulogic;
-    begin
-	uart0: uart_top
-	    port map (
-		wb_clk_i   => system_clk,
-		wb_rst_i   => rst_uart,
-		wb_adr_i   => wb_uart0_in.adr(4 downto 2),
-		wb_dat_i   => wb_uart0_in.dat(7 downto 0),
-		wb_dat_o   => uart0_dat8,
-		wb_we_i    => wb_uart0_in.we,
-		wb_stb_i   => wb_uart0_in.stb,
-		wb_cyc_i   => wb_uart0_in.cyc,
-		wb_ack_o   => wb_uart0_out.ack,
-		int_o      => irq_l,
-		stx_pad_o  => uart0_txd,
-		srx_pad_i  => uart0_rxd,
-		rts_pad_o  => open,
-		cts_pad_i  => '1',
-		dtr_pad_o  => open,
-		dsr_pad_i  => '1',
-		ri_pad_i   => '0',
-		dcd_pad_i  => '1'
-		);
-
-        -- Add a register on the irq out, helps timing
-        uart0_irq_latch: process(system_clk)
-        begin
-            if rising_edge(system_clk) then
-                uart0_irq <= irq_l;
-            end if;
-        end process;
-    end generate;
-
     wb_uart0_out.dat <= x"000000" & uart0_dat8;
     wb_uart0_out.stall <= not wb_uart0_out.ack;
 
@@ -715,41 +657,6 @@ begin
     --
     -- Always 16550 if it exists
     --
-    uart1: if HAS_UART1 generate
-        signal irq_l : std_ulogic;
-    begin
-	uart1: uart_top
-	    port map (
-		wb_clk_i   => system_clk,
-		wb_rst_i   => rst_uart,
-		wb_adr_i   => wb_uart1_in.adr(4 downto 2),
-		wb_dat_i   => wb_uart1_in.dat(7 downto 0),
-		wb_dat_o   => uart1_dat8,
-		wb_we_i    => wb_uart1_in.we,
-		wb_stb_i   => wb_uart1_in.stb,
-		wb_cyc_i   => wb_uart1_in.cyc,
-		wb_ack_o   => wb_uart1_out.ack,
-		int_o      => irq_l,
-		stx_pad_o  => uart1_txd,
-		srx_pad_i  => uart1_rxd,
-		rts_pad_o  => open,
-		cts_pad_i  => '1',
-		dtr_pad_o  => open,
-		dsr_pad_i  => '1',
-		ri_pad_i   => '0',
-		dcd_pad_i  => '1'
-		);
-        -- Add a register on the irq out, helps timing
-        uart0_irq_latch: process(system_clk)
-        begin
-            if rising_edge(system_clk) then
-                uart1_irq <= irq_l;
-            end if;
-        end process;
-	wb_uart1_out.dat <= x"000000" & uart1_dat8;
-	wb_uart1_out.stall <= not wb_uart1_out.ack;
-    end generate;
-
     no_uart1 : if not HAS_UART1 generate
 	wb_uart1_out.dat <= x"00000000";
 	wb_uart1_out.ack <= wb_uart1_in.cyc and wb_uart1_in.stb;
