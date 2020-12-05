@@ -137,7 +137,7 @@ $(soc_dram_tbs): %: $(soc_dram_files) $(soc_dram_sim_files) $(soc_dram_sim_obj_f
 endif
 
 # Hello world
-MEMORY_SIZE=8192
+MEMORY_SIZE=256
 RAM_INIT_FILE=hello_world/hello_world.hex
 
 # Micropython
@@ -171,7 +171,7 @@ OPENOCD_DEVICE_CONFIG=openocd/LFE5UM5G-85F.cfg
 endif
 
 GHDL_IMAGE_GENERICS=-gMEMORY_SIZE=$(MEMORY_SIZE) -gRAM_INIT_FILE=$(RAM_INIT_FILE) \
-	-gRESET_LOW=$(RESET_LOW) -gCLK_INPUT=$(CLK_INPUT) -gCLK_FREQUENCY=$(CLK_FREQUENCY)
+	-gRESET_LOW=$(RESET_LOW) -gCLK_INPUT=$(CLK_INPUT) -gCLK_FREQUENCY=$(CLK_FREQUENCY) -gHAS_FPU=false
 
 clkgen=fpga/clk_gen_bypass.vhd
 toplevel=fpga/top-generic.vhdl
