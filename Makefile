@@ -5,7 +5,7 @@ VERILATOR_FLAGS=-O3 #--trace
 # It takes forever to build with optimisation, so disable by default
 #VERILATOR_CFLAGS=-O3
 
-GHDLSYNTH ?= ghdl.so
+GHDLSYNTH ?= -m ghdl.so
 YOSYS     ?= yosys
 NEXTPNR   ?= nextpnr-ecp5
 ECPPACK   ?= ecppack
@@ -35,7 +35,7 @@ PWD = $(shell pwd)
 DOCKERARGS = run --rm -v $(PWD):/src:z -w /src
 GHDL      = $(DOCKERBIN) $(DOCKERARGS) ghdl/ghdl:buster-llvm-7 ghdl
 CC        = $(DOCKERBIN) $(DOCKERARGS) ghdl/ghdl:buster-llvm-7 gcc
-GHDLSYNTH = ghdl
+GHDLSYNTH = -m ghdl
 YOSYS     = $(DOCKERBIN) $(DOCKERARGS) hdlc/ghdl:yosys yosys
 NEXTPNR   = $(DOCKERBIN) $(DOCKERARGS) hdlc/nextpnr:ecp5 nextpnr-ecp5
 ECPPACK   = $(DOCKERBIN) $(DOCKERARGS) hdlc/prjtrellis ecppack
@@ -211,10 +211,10 @@ fpga_files = fpga/soc_reset.vhdl \
 synth_files = $(core_files) $(soc_files) $(fpga_files) $(clkgen) $(toplevel) $(dmi_dtm)
 
 microwatt.json: $(synth_files) $(RAM_INIT_FILE)
-	$(YOSYS) -m $(GHDLSYNTH) -p "ghdl --std=08 --no-formal $(GHDL_IMAGE_GENERICS) $(synth_files) -e toplevel; synth_ecp5 -abc9 -nowidelut -json $@  $(SYNTH_ECP5_FLAGS)" $(uart_files)
+	$(YOSYS) $(GHDLSYNTH) -p "ghdl --std=08 --no-formal $(GHDL_IMAGE_GENERICS) $(synth_files) -e toplevel; synth_ecp5 -abc9 -nowidelut -json $@  $(SYNTH_ECP5_FLAGS)" $(uart_files)
 
 microwatt.v: $(synth_files) $(RAM_INIT_FILE)
-	$(YOSYS) -m $(GHDLSYNTH) -p "ghdl --std=08 --no-formal $(GHDL_IMAGE_GENERICS) $(synth_files) -e toplevel; write_verilog $@"
+	$(YOSYS) -p "ghdl --std=08 --no-formal $(GHDL_IMAGE_GENERICS) $(synth_files) -e toplevel; write_verilog $@"
 
 # Need to investigate why yosys is hitting verilator warnings, and eventually turn on -Wall
 microwatt-verilator: microwatt.v verilator/microwatt-verilator.cpp verilator/uart-verilator.c
