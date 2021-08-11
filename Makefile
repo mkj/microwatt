@@ -153,7 +153,7 @@ FPGA_TARGET ?= ORANGE-CRAB
 # with yosys, so make it smaller for now as a workaround.
 ICACHE_NUM_LINES=4
 
-# OrangeCrab with ECP85
+# OrangeCrab 0.1 with ECP85
 ifeq ($(FPGA_TARGET), ORANGE-CRAB)
 RESET_LOW=true
 CLK_INPUT=50000000
@@ -161,6 +161,19 @@ CLK_FREQUENCY=40000000
 LPF=constraints/orange-crab.lpf
 PACKAGE=CSFBGA285
 NEXTPNR_FLAGS=--um5g-85k --freq 40
+OPENOCD_JTAG_CONFIG=openocd/olimex-arm-usb-tiny-h.cfg
+OPENOCD_DEVICE_CONFIG=openocd/LFE5UM5G-85F.cfg
+endif
+
+# OrangeCrab 0.2 with ECP85
+ifeq ($(FPGA_TARGET), ORANGE-CRAB-0.2)
+RESET_LOW=true
+# TODO matt: isn't this 48mhz?
+CLK_INPUT=50000000
+CLK_FREQUENCY=40000000
+LPF=constraints/orange-crab-0.2.lpf
+PACKAGE=CSFBGA285
+NEXTPNR_FLAGS=--85k --freq 40 --speed 8
 OPENOCD_JTAG_CONFIG=openocd/olimex-arm-usb-tiny-h.cfg
 OPENOCD_DEVICE_CONFIG=openocd/LFE5UM5G-85F.cfg
 endif
