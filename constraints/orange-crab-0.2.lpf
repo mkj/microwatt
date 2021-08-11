@@ -1,0 +1,19 @@
+LOCATE COMP "ext_clk" SITE "A9";
+IOBUF PORT "ext_clk" IO_TYPE=LVCMOS33;
+
+LOCATE COMP "ext_rst" SITE "J2"; // io_13
+IOBUF PORT "ext_rst" PULLMODE=UP IO_TYPE=LVCMOS33 DRIVE=4;
+
+LOCATE COMP "uart0_txd" SITE "N17"; // io_0
+LOCATE COMP "uart0_rxd" SITE "M18"; // io_1
+
+IOBUF PORT "uart0_txd" IO_TYPE=LVCMOS25;
+IOBUF PORT "uart0_rxd" IO_TYPE=LVCMOS25;
+
+LOCATE COMP "led_a" SITE "M3"; // green
+LOCATE COMP "led_b" SITE "K4"; // red
+LOCATE COMP "led_c" SITE "J3"; // blue
+
+IOBUF PORT "led_a" IO_TYPE=LVCMOS33;
+IOBUF PORT "led_b" IO_TYPE=LVCMOS33;
+IOBUF PORT "led_c" IO_TYPE=LVCMOS33;
