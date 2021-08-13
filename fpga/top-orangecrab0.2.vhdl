@@ -41,36 +41,13 @@ entity toplevel is
         led0_b  : out std_ulogic;
         led0_g  : out std_ulogic;
         led0_r  : out std_ulogic;
-        led4    : out std_ulogic;
-        led5    : out std_ulogic;
-        led6    : out std_ulogic;
-        led7    : out std_ulogic;
 
         -- SPI
         spi_flash_cs_n   : out std_ulogic;
-        spi_flash_clk    : out std_ulogic;
         spi_flash_mosi   : inout std_ulogic;
         spi_flash_miso   : inout std_ulogic;
         spi_flash_wp_n   : inout std_ulogic;
         spi_flash_hold_n : inout std_ulogic;
-
-        -- GPIO
-        shield_io        : inout std_ulogic_vector(44 downto 0);
-
-        -- Ethernet
-        eth_ref_clk      : out std_ulogic;
-        eth_clocks_tx    : in std_ulogic;
-        eth_clocks_rx    : in std_ulogic;
-        eth_rst_n        : out std_ulogic;
-        eth_mdio         : inout std_ulogic;
-        eth_mdc          : out std_ulogic;
-        eth_rx_dv        : in std_ulogic;
-        eth_rx_er        : in std_ulogic;
-        eth_rx_data      : in std_ulogic_vector(3 downto 0);
-        eth_tx_en        : out std_ulogic;
-        eth_tx_data      : out std_ulogic_vector(3 downto 0);
-        eth_col          : in std_ulogic;
-        eth_crs          : in std_ulogic;
 
         -- SD card
         sdcard_data   : inout std_ulogic_vector(3 downto 0);
@@ -93,7 +70,10 @@ entity toplevel is
         ddram_clk_n   : out std_ulogic;
         ddram_cke     : out std_ulogic;
         ddram_odt     : out std_ulogic;
-        ddram_reset_n : out std_ulogic
+        ddram_reset_n : out std_ulogic;
+
+        ddram_gnd      : out std_ulogic_vector(1 downto 0);
+        ddram_vccio    : out std_ulogic_vector(5 downto 0)
         );
 end entity toplevel;
 
@@ -178,9 +158,19 @@ architecture behaviour of toplevel is
             return 0;
         end if;
     end function;
-    
+
     constant BRAM_SIZE    : natural := get_bram_size;
     constant PAYLOAD_SIZE : natural := get_payload_size;
+
+    COMPONENT USRMCLK
+        PORT(
+            USRMCLKI : IN STD_ULOGIC;
+            USRMCLKTS : IN STD_ULOGIC
+        );
+    END COMPONENT;
+    attribute syn_noprune: boolean ;
+    attribute syn_noprune of USRMCLK: component is true;
+
 begin
 
     -- Main SoC
@@ -274,27 +264,33 @@ begin
     spi_sdat_i(2)    <= spi_flash_wp_n;
     spi_sdat_i(3)    <= spi_flash_hold_n;
 
-    spi_sclk_startupe2: if SCLK_STARTUPE2 generate
-        spi_flash_clk    <= 'Z';
+    --spi_sclk_startupe2: if SCLK_STARTUPE2 generate
+    --    spi_flash_clk    <= 'Z';
 
-        -- matt
-        --STARTUPE2_INST: STARTUPE2
-        --    port map (
-        --        CLK => '0',
-        --        GSR => '0',
-        --        GTS => '0',
-        --        KEYCLEARB => '0',
-        --        PACK => '0',
-        --        USRCCLKO => spi_sck,
-        --        USRCCLKTS => '0',
-        --        USRDONEO => '1',
-        --        USRDONETS => '0'
-        --        );
-    end generate;
+    --    -- matt
+    --    --STARTUPE2_INST: STARTUPE2
+    --    --    port map (
+    --    --        CLK => '0',
+    --    --        GSR => '0',
+    --    --        GTS => '0',
+    --    --        KEYCLEARB => '0',
+    --    --        PACK => '0',
+    --    --        USRCCLKO => spi_sck,
+    --    --        USRCCLKTS => '0',
+    --    --        USRDONEO => '1',
+    --    --        USRDONETS => '0'
+    --    --        );
+    --end generate;
 
-    spi_direct_sclk: if not SCLK_STARTUPE2 generate
-        spi_flash_clk    <= spi_sck;
-    end generate;
+    --spi_direct_sclk: if not SCLK_STARTUPE2 generate
+    --    spi_flash_clk    <= spi_sck;
+    --end generate;
+
+
+    uclk: USRMCLK port map (
+        USRMCLKI => spi_sck,
+        USRMCLKTS => '0'
+        );
 
     nodram: if not USE_LITEDRAM generate
         signal ddram_clk_dummy : std_ulogic;
@@ -395,6 +391,7 @@ begin
                 system_clk      => system_clk,
                 system_reset    => dram_sys_rst,
                 core_alt_reset  => core_alt_reset,
+                pll_locked      => system_clk_locked,
 
                 wb_in           => wb_dram_in,
                 wb_out          => wb_dram_out,
@@ -420,8 +417,12 @@ begin
                 ddram_clk_n     => ddram_clk_n,
                 ddram_cke       => ddram_cke,
                 ddram_odt       => ddram_odt,
+
                 ddram_reset_n   => ddram_reset_n
                 );
+
+        ddram_gnd <= "00";
+        ddram_vccio <= "111111";
 
         led0_b_pwm <= not dram_init_done;
         led0_r_pwm <= dram_init_error;
@@ -429,134 +430,6 @@ begin
 
     end generate;
 
-    has_liteeth : if USE_LITEETH generate
-
-        component liteeth_core port (
-            sys_clock           : in std_ulogic;
-            sys_reset           : in std_ulogic;
-            mii_eth_clocks_tx   : in std_ulogic;
-            mii_eth_clocks_rx   : in std_ulogic;
-            mii_eth_rst_n       : out std_ulogic;
-            mii_eth_mdio        : in std_ulogic;
-            mii_eth_mdc         : out std_ulogic;
-            mii_eth_rx_dv       : in std_ulogic;
-            mii_eth_rx_er       : in std_ulogic;
-            mii_eth_rx_data     : in std_ulogic_vector(3 downto 0);
-            mii_eth_tx_en       : out std_ulogic;
-            mii_eth_tx_data     : out std_ulogic_vector(3 downto 0);
-            mii_eth_col         : in std_ulogic;
-            mii_eth_crs         : in std_ulogic;
-            wishbone_adr        : in std_ulogic_vector(29 downto 0);
-            wishbone_dat_w      : in std_ulogic_vector(31 downto 0);
-            wishbone_dat_r      : out std_ulogic_vector(31 downto 0);
-            wishbone_sel        : in std_ulogic_vector(3 downto 0);
-            wishbone_cyc        : in std_ulogic;
-            wishbone_stb        : in std_ulogic;
-            wishbone_ack        : out std_ulogic;
-            wishbone_we         : in std_ulogic;
-            wishbone_cti        : in std_ulogic_vector(2 downto 0);
-            wishbone_bte        : in std_ulogic_vector(1 downto 0);
-            wishbone_err        : out std_ulogic;
-            interrupt           : out std_ulogic
-            );
-        end component;
-
-        signal wb_eth_cyc     : std_ulogic;
-        signal wb_eth_adr     : std_ulogic_vector(29 downto 0);
-
-        -- Change this to use a PLL instead of a BUFR to generate the 25Mhz
-        -- reference clock to the PHY.
-        constant USE_PLL : boolean := false;
-    begin
-        eth_use_pll: if USE_PLL generate
-            signal eth_clk_25     : std_ulogic;
-            signal eth_clkfb      : std_ulogic;
-        begin
-                -- matt
-            --pll_eth : PLLE2_BASE
-            --    generic map (
-            --        BANDWIDTH          => "OPTIMIZED",
-            --        CLKFBOUT_MULT      => 16,
-            --        CLKIN1_PERIOD      => 10.0,
-            --        CLKOUT0_DIVIDE     => 64,
-            --        DIVCLK_DIVIDE      => 1,
-            --        STARTUP_WAIT       => "FALSE")
-            --    port map (
-            --        CLKOUT0  => eth_clk_25,
-            --        CLKOUT1  => open,
-            --        CLKOUT2  => open,
-            --        CLKOUT3  => open,
-            --        CLKOUT4  => open,
-            --        CLKOUT5  => open,
-            --        CLKFBOUT => eth_clkfb,
-            --        LOCKED   => eth_clk_locked,
-            --        CLKIN1   => ext_clk,
-            --        PWRDWN   => '0',
-            --        RST      => pll_rst,
-            --        CLKFBIN  => eth_clkfb);
-
-            --eth_clk_buf: BUFG
-            --    port map (
-            --        I => eth_clk_25,
-            --        O => eth_ref_clk
-            --        );
-        end generate;
-
-        eth_use_bufr: if not USE_PLL generate
-                -- matt
-            --eth_clk_div: BUFR
-            --    generic map (
-            --        BUFR_DIVIDE => "4"
-            --        )
-            --    port map (
-            --        I => system_clk,
-            --        O => eth_ref_clk,
-            --        CE => '1',
-            --        CLR => '0'
-            --        );
-            eth_clk_locked <= '1';
-        end generate;
-
-        liteeth :  liteeth_core
-            port map(
-                sys_clock         => system_clk,
-                sys_reset         => soc_rst,
-                mii_eth_clocks_tx => eth_clocks_tx,
-                mii_eth_clocks_rx => eth_clocks_rx,
-                mii_eth_rst_n     => eth_rst_n,
-                mii_eth_mdio      => eth_mdio,
-                mii_eth_mdc       => eth_mdc,
-                mii_eth_rx_dv     => eth_rx_dv,
-                mii_eth_rx_er     => eth_rx_er,
-                mii_eth_rx_data   => eth_rx_data,
-                mii_eth_tx_en     => eth_tx_en,
-                mii_eth_tx_data   => eth_tx_data,
-                mii_eth_col       => eth_col,
-                mii_eth_crs       => eth_crs,
-                wishbone_adr      => wb_eth_adr,
-                wishbone_dat_w    => wb_ext_io_in.dat,
-                wishbone_dat_r    => wb_eth_out.dat,
-                wishbone_sel      => wb_ext_io_in.sel,
-                wishbone_cyc      => wb_eth_cyc,
-                wishbone_stb      => wb_ext_io_in.stb,
-                wishbone_ack      => wb_eth_out.ack,
-                wishbone_we       => wb_ext_io_in.we,
-                wishbone_cti      => "000",
-                wishbone_bte      => "00",
-                wishbone_err      => open,
-                interrupt         => ext_irq_eth
-                );
-
-        -- Gate cyc with "chip select" from soc
-        wb_eth_cyc <= wb_ext_io_in.cyc and wb_ext_is_eth;
-
-        -- Remove top address bits as liteeth decoder doesn't know about them
-        wb_eth_adr <= x"000" & "000" & wb_ext_io_in.adr(16 downto 2);
-
-        -- LiteETH isn't pipelined
-        wb_eth_out.stall <= not wb_eth_out.ack;
-
-    end generate;
 
     no_liteeth : if not USE_LITEETH generate
         eth_clk_locked <= '1';
@@ -686,76 +559,5 @@ begin
             end if;
         end if;
     end process;
-
-    led4 <= system_clk_locked;
-    led5 <= eth_clk_locked;
-    led6 <= not soc_rst;
-
-    -- GPIO
-    gpio_in(0) <= shield_io(0);
-    gpio_in(1) <= shield_io(1);
-    gpio_in(2) <= shield_io(2);
-    gpio_in(3) <= shield_io(3);
-    gpio_in(4) <= shield_io(4);
-    gpio_in(5) <= shield_io(5);
-    gpio_in(6) <= shield_io(6);
-    gpio_in(7) <= shield_io(7);
-    gpio_in(8) <= shield_io(8);
-    gpio_in(9) <= shield_io(9);
-    gpio_in(10) <= shield_io(10);
-    gpio_in(11) <= shield_io(11);
-    gpio_in(12) <= shield_io(12);
-    gpio_in(13) <= shield_io(13);
-    gpio_in(14) <= shield_io(26);
-    gpio_in(15) <= shield_io(27);
-    gpio_in(16) <= shield_io(28);
-    gpio_in(17) <= shield_io(29);
-    gpio_in(18) <= shield_io(30);
-    gpio_in(19) <= shield_io(31);
-    gpio_in(20) <= shield_io(32);
-    gpio_in(21) <= shield_io(33);
-    gpio_in(22) <= shield_io(34);
-    gpio_in(23) <= shield_io(35);
-    gpio_in(24) <= shield_io(36);
-    gpio_in(25) <= shield_io(37);
-    gpio_in(26) <= shield_io(38);
-    gpio_in(27) <= shield_io(39);
-    gpio_in(28) <= shield_io(40);
-    gpio_in(29) <= shield_io(41);
-    gpio_in(30) <= shield_io(43);
-    gpio_in(31) <= shield_io(44);
-
-    shield_io(0) <= gpio_out(0) when gpio_dir(0) = '1' else 'Z';
-    shield_io(1) <= gpio_out(1) when gpio_dir(1) = '1' else 'Z';
-    shield_io(2) <= gpio_out(2) when gpio_dir(2) = '1' else 'Z';
-    shield_io(3) <= gpio_out(3) when gpio_dir(3) = '1' else 'Z';
-    shield_io(4) <= gpio_out(4) when gpio_dir(4) = '1' else 'Z';
-    shield_io(5) <= gpio_out(5) when gpio_dir(5) = '1' else 'Z';
-    shield_io(6) <= gpio_out(6) when gpio_dir(6) = '1' else 'Z';
-    shield_io(7) <= gpio_out(7) when gpio_dir(7) = '1' else 'Z';
-    shield_io(8) <= gpio_out(8) when gpio_dir(8) = '1' else 'Z';
-    shield_io(9) <= gpio_out(9) when gpio_dir(9) = '1' else 'Z';
-    shield_io(10) <= gpio_out(10) when gpio_dir(10) = '1' else 'Z';
-    shield_io(11) <= gpio_out(11) when gpio_dir(11) = '1' else 'Z';
-    shield_io(12) <= gpio_out(12) when gpio_dir(12) = '1' else 'Z';
-    shield_io(13) <= gpio_out(13) when gpio_dir(13) = '1' else 'Z';
-    shield_io(26) <= gpio_out(14) when gpio_dir(14) = '1' else 'Z';
-    shield_io(27) <= gpio_out(15) when gpio_dir(15) = '1' else 'Z';
-    shield_io(28) <= gpio_out(16) when gpio_dir(16) = '1' else 'Z';
-    shield_io(29) <= gpio_out(17) when gpio_dir(17) = '1' else 'Z';
-    shield_io(30) <= gpio_out(18) when gpio_dir(18) = '1' else 'Z';
-    shield_io(31) <= gpio_out(19) when gpio_dir(19) = '1' else 'Z';
-    shield_io(32) <= gpio_out(20) when gpio_dir(20) = '1' else 'Z';
-    shield_io(33) <= gpio_out(21) when gpio_dir(21) = '1' else 'Z';
-    shield_io(34) <= gpio_out(22) when gpio_dir(22) = '1' else 'Z';
-    shield_io(35) <= gpio_out(23) when gpio_dir(23) = '1' else 'Z';
-    shield_io(36) <= gpio_out(24) when gpio_dir(24) = '1' else 'Z';
-    shield_io(37) <= gpio_out(25) when gpio_dir(25) = '1' else 'Z';
-    shield_io(38) <= gpio_out(26) when gpio_dir(26) = '1' else 'Z';
-    shield_io(39) <= gpio_out(27) when gpio_dir(27) = '1' else 'Z';
-    shield_io(40) <= gpio_out(28) when gpio_dir(28) = '1' else 'Z';
-    shield_io(41) <= gpio_out(29) when gpio_dir(29) = '1' else 'Z';
-    shield_io(43) <= gpio_out(30) when gpio_dir(30) = '1' else 'Z';
-    shield_io(44) <= gpio_out(31) when gpio_dir(31) = '1' else 'Z';
 
 end architecture behaviour;
