@@ -1,0 +1,28 @@
+# Matt Johnston 2021
+# Based on parameters from Greg Davill's Orangecrab-test-sw
+
+{
+    "cpu":        "None",  # CPU type (ex vexriscv, serv, None)
+    "device": "LFE5U-85F-8MG285C",
+    "memtype":    "DDR3",      # DRAM type
+
+    "sdram_module":    "MT41K256M16", # SDRAM modules of the board or SO-DIMM
+    "sdram_module_nb": 2,             # Number of byte groups
+    "sdram_rank_nb":   1,             # Number of ranks
+    "sdram_phy":       "ECP5DDRPHY",    # Type of FPGA PHY
+
+    # Frequency ----------------------------------------------------------------
+    "init_clk_freq":   24e6,
+    "input_clk_freq":   48e6, # Input clock frequency
+    "sys_clk_freq":     48e6, # System clock frequency (DDR_clk = 4 x sys_clk)
+
+    # Core ---------------------------------------------------------------------
+    "cmd_buffer_depth": 16,    # Depth of the command buffer
+
+    # User Ports ---------------------------------------------------------------
+    "user_ports": {
+        "native_0": {
+            "type": "native",
+        },
+    },
+}
