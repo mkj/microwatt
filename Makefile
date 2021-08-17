@@ -5,7 +5,9 @@ VERILATOR_FLAGS=-O3 #--trace
 # It takes forever to build with optimisation, so disable by default
 #VERILATOR_CFLAGS=-O3
 
-GHDLSYNTH ?= -m ghdl.so
+# fpga-toolchain builds have ghdl plugin built in, otherwise need
+# -m ghdl.so
+GHDLSYNTH ?= $(shell (yosys -H | grep -q ghdl) || echo -m ghdl.so)
 YOSYS     ?= yosys
 NEXTPNR   ?= nextpnr-ecp5
 ECPPACK   ?= ecppack
