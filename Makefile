@@ -153,7 +153,7 @@ RAM_INIT_FILE=hello_world/hello_world.hex
 #MEMORY_SIZE=393216
 #RAM_INIT_FILE=micropython/firmware.hex
 
-FPGA_TARGET ?= ORANGE-CRAB
+FPGA_TARGET ?= ORANGE-CRAB-0.2
 
 # FIXME: icache RAMs aren't being inferrenced as block RAMs on ECP5
 # with yosys, so make it smaller for now as a workaround.
