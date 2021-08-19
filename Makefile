@@ -149,7 +149,7 @@ RAM_INIT_FILE=hello_world/hello_world.hex
 #MEMORY_SIZE=393216
 #RAM_INIT_FILE=micropython/firmware.hex
 
-FPGA_TARGET ?= ORANGE-CRAB
+FPGA_TARGET ?= ORANGE-CRAB-0.2
 
 # FIXME: icache RAMs aren't being inferrenced as block RAMs on ECP5
 # with yosys, so make it smaller for now as a workaround.
@@ -184,6 +184,7 @@ OPENOCD_JTAG_CONFIG=openocd/olimex-arm-usb-tiny-h.cfg
 OPENOCD_DEVICE_CONFIG=openocd/LFE5UM5G-85F.cfg
 toplevel=fpga/top-orangecrab0.2.vhdl
 litedram_target=orangecrab-85-0.2
+USE_LITEDRAM=true
 endif
 
 # ECP5-EVN
@@ -202,7 +203,6 @@ ifneq ($(litedram_target),)
 soc_extra_synth += litedram/extras/litedram-wrapper-l2.vhdl \
 	litedram/generated/$(litedram_target)/litedram-initmem.vhdl
 soc_extra_v += litedram/generated/$(litedram_target)/litedram_core.v
-USE_LITEDRAM=true
 endif
 
 GHDL_IMAGE_GENERICS=-gMEMORY_SIZE=$(MEMORY_SIZE) -gRAM_INIT_FILE=$(RAM_INIT_FILE) \
