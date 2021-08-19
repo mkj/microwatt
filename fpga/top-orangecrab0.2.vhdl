@@ -22,7 +22,6 @@ entity toplevel is
         SPI_FLASH_DEF_CKDV : natural := 1;
         SPI_FLASH_DEF_QUAD : boolean := true;
         LOG_LENGTH         : natural := 512;
-        USE_LITEETH        : boolean  := false;
         UART_IS_16550      : boolean  := true;
         HAS_UART1          : boolean  := true;
         USE_LITESDCARD     : boolean := false;
@@ -86,14 +85,12 @@ architecture behaviour of toplevel is
     -- Internal clock signals:
     signal system_clk        : std_ulogic;
     signal system_clk_locked : std_ulogic;
-    signal eth_clk_locked    : std_ulogic;
 
     -- External IOs from the SoC
     signal wb_ext_io_in        : wb_io_master_out;
     signal wb_ext_io_out       : wb_io_slave_out;
     signal wb_ext_is_dram_csr  : std_ulogic;
     signal wb_ext_is_dram_init : std_ulogic;
-    signal wb_ext_is_eth       : std_ulogic;
     signal wb_ext_is_sdcard    : std_ulogic;
 
     -- DRAM main data wishbone connection
@@ -102,10 +99,6 @@ architecture behaviour of toplevel is
 
     -- DRAM control wishbone connection
     signal wb_dram_ctrl_out    : wb_io_slave_out := wb_io_slave_out_init;
-
-    -- LiteEth connection
-    signal ext_irq_eth         : std_ulogic;
-    signal wb_eth_out          : wb_io_slave_out := wb_io_slave_out_init;
 
     -- LiteSDCard connection
     signal ext_irq_sdcard      : std_ulogic := '0';
@@ -192,7 +185,6 @@ begin
             SPI_FLASH_DEF_CKDV => SPI_FLASH_DEF_CKDV,
             SPI_FLASH_DEF_QUAD => SPI_FLASH_DEF_QUAD,
             LOG_LENGTH         => LOG_LENGTH,
-            HAS_LITEETH        => USE_LITEETH,
             UART0_IS_16550     => UART_IS_16550,
             HAS_UART1          => HAS_UART1,
             HAS_SD_CARD        => USE_LITESDCARD,
@@ -224,7 +216,6 @@ begin
             gpio_dir          => gpio_dir,
 
             -- External interrupts
-            ext_irq_eth       => ext_irq_eth,
             ext_irq_sdcard    => ext_irq_sdcard,
 
             -- DRAM wishbone
@@ -236,7 +227,6 @@ begin
             wb_ext_io_out        => wb_ext_io_out,
             wb_ext_is_dram_csr   => wb_ext_is_dram_csr,
             wb_ext_is_dram_init  => wb_ext_is_dram_init,
-            wb_ext_is_eth        => wb_ext_is_eth,
             wb_ext_is_sdcard     => wb_ext_is_sdcard,
 
             -- DMA wishbone
@@ -302,7 +292,7 @@ begin
             port map(
                 ext_clk => ext_clk,
                 pll_clk => system_clk,
-                pll_locked_in => system_clk_locked and eth_clk_locked,
+                pll_locked_in => system_clk_locked,
                 ext_rst_in => ext_rst_n,
                 pll_rst_out => pll_rst,
                 rst_out => soc_rst
@@ -360,7 +350,7 @@ begin
             port map(
                 ext_clk => ext_clk,
                 pll_clk => system_clk,
-                pll_locked_in => eth_clk_locked,
+                pll_locked_in => system_clk_locked,
                 ext_rst_in => ext_rst_n,
                 pll_rst_out => pll_rst,
                 rst_out => rst_gen_rst
@@ -372,7 +362,7 @@ begin
             if ext_rst_n = '0' then
                 soc_rst <= '1';
             elsif rising_edge(system_clk) then
-                soc_rst <= dram_sys_rst or not eth_clk_locked or not system_clk_locked;
+                soc_rst <= dram_sys_rst or not system_clk_locked;
             end if;
         end process;
 
@@ -430,11 +420,6 @@ begin
 
     end generate;
 
-
-    no_liteeth : if not USE_LITEETH generate
-        eth_clk_locked <= '1';
-        ext_irq_eth    <= '0';
-    end generate;
 
     -- SD card pmod
     has_sdcard : if USE_LITESDCARD generate
@@ -540,8 +525,7 @@ begin
     end generate;
 
     -- Mux WB response on the IO bus
-    wb_ext_io_out <= wb_eth_out when wb_ext_is_eth = '1' else
-                     wb_sdcard_out when wb_ext_is_sdcard = '1' else
+    wb_ext_io_out <= wb_sdcard_out when wb_ext_is_sdcard = '1' else
                      wb_dram_ctrl_out;
 
     leds_pwm : process(system_clk)
