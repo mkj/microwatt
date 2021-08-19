@@ -188,6 +188,7 @@ begin
             UART0_IS_16550     => UART_IS_16550,
             HAS_UART1          => HAS_UART1,
             HAS_SD_CARD        => USE_LITESDCARD,
+            ICACHE_NUM_LINES   => ICACHE_NUM_LINES,
             NGPIO              => NGPIO
             )
         port map (
