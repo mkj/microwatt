@@ -7,8 +7,8 @@ IOBUF PORT "ext_rst_n" PULLMODE=UP IO_TYPE=LVCMOS33 DRIVE=4;
 LOCATE COMP "uart_main_tx" SITE "N17"; // io_0
 LOCATE COMP "uart_main_rx" SITE "M18"; // io_1
 
-IOBUF PORT "uart_main_tx" IO_TYPE=LVCMOS25;
-IOBUF PORT "uart_main_rx" IO_TYPE=LVCMOS25;
+IOBUF PORT "uart_main_tx" IO_TYPE=LVCMOS33;
+IOBUF PORT "uart_main_rx" IO_TYPE=LVCMOS33;
 
 LOCATE COMP "led0_g" SITE "M3";
 LOCATE COMP "led0_r" SITE "K4";
