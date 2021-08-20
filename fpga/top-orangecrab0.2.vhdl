@@ -413,6 +413,8 @@ begin
                 );
 
         ddram_gnd <= "00";
+        -- for power consumption.
+        -- https://github.com/orangecrab-fpga/orangecrab-hardware/issues/19#issuecomment-683479378
         ddram_vccio <= "111111";
 
         led0_b_pwm <= not dram_init_done;
