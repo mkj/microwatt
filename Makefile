@@ -34,6 +34,10 @@ DOCKERBIN=podman
 USE_DOCKER=1
 endif
 
+ifeq ($(VERBOSE), 1)
+YOSYS_EXTRA_SCRIPT=logger -debug;
+endif
+
 ifeq ($(USE_DOCKER), 1)
 PWD = $(shell pwd)
 DOCKERARGS = run --rm -v $(PWD):/src:z -w /src
@@ -216,10 +220,10 @@ fpga_files = fpga/soc_reset.vhdl \
 synth_files = $(core_files) $(soc_files) $(fpga_files) $(clkgen) $(toplevel) $(dmi_dtm)
 
 microwatt.json: $(synth_files) $(RAM_INIT_FILE)
-	$(YOSYS) $(GHDLSYNTH) -p "ghdl --std=08 --no-formal $(GHDL_IMAGE_GENERICS) $(synth_files) -e toplevel; synth_ecp5 -abc9 -nowidelut -json $@  $(SYNTH_ECP5_FLAGS)" $(uart_files)
+	$(YOSYS) $(GHDLSYNTH) -p "$(YOSYS_EXTRA_SCRIPT) ghdl --std=08 --no-formal $(GHDL_IMAGE_GENERICS) $(synth_files) -e toplevel; synth_ecp5 -abc9 -nowidelut -json $@  $(SYNTH_ECP5_FLAGS)" $(uart_files)
 
 microwatt.v: $(synth_files) $(RAM_INIT_FILE)
-	$(YOSYS) -p "ghdl --std=08 --no-formal $(GHDL_IMAGE_GENERICS) $(synth_files) -e toplevel; write_verilog $@"
+	$(YOSYS) $(GHDLSYNTH) -p "$(YOSYS_EXTRA_SCRIPT) ghdl --std=08 --no-formal $(GHDL_IMAGE_GENERICS) $(synth_files) -e toplevel; write_verilog $@"
 
 microwatt-verilator: microwatt.v verilator/microwatt-verilator.cpp verilator/uart-verilator.c
 	$(VERILATOR) $(VERILATOR_FLAGS) -CFLAGS "$(VERILATOR_CFLAGS) -DCLK_FREQUENCY=$(CLK_FREQUENCY)" -Iuart16550 --assert --cc --exe --build $^ -o $@ -top-module toplevel
