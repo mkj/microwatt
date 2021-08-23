@@ -14,7 +14,7 @@
     # Frequency ----------------------------------------------------------------
     "init_clk_freq":   24e6,
     "input_clk_freq":   48e6, # Input clock frequency
-    "sys_clk_freq":     40e6, # System clock frequency (DDR_clk = 4 x sys_clk)
+    "sys_clk_freq":     36e6, # System clock frequency (DDR_clk = 4 x sys_clk)
 
     # Core ---------------------------------------------------------------------
     "cmd_buffer_depth": 16,    # Depth of the command buffer
