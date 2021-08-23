@@ -181,7 +181,7 @@ CLK_INPUT=48000000
 CLK_FREQUENCY=40000000
 LPF=constraints/orange-crab.lpf
 PACKAGE=CSFBGA285
-NEXTPNR_FLAGS=--85k --speed 8 --freq 40
+NEXTPNR_FLAGS=--85k --freq 40 --speed 8 --write microwatt-routed.json
 OPENOCD_JTAG_CONFIG=openocd/olimex-arm-usb-tiny-h.cfg
 OPENOCD_DEVICE_CONFIG=openocd/LFE5U-85F.cfg
 endif
