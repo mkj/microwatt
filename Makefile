@@ -183,10 +183,10 @@ endif
 ifeq ($(FPGA_TARGET), ORANGE-CRAB-0.2)
 RESET_LOW=true
 CLK_INPUT=48000000
-CLK_FREQUENCY=40000000
+CLK_FREQUENCY=36000000
 LPF=constraints/orange-crab-0.2.lpf
 PACKAGE=CSFBGA285
-NEXTPNR_FLAGS=--85k --freq 40 --speed 8 --write microwatt-routed.json
+NEXTPNR_FLAGS=--85k --freq 36 --speed 8 --write microwatt-routed.json
 OPENOCD_JTAG_CONFIG=openocd/olimex-arm-usb-tiny-h.cfg
 OPENOCD_DEVICE_CONFIG=openocd/LFE5UM5G-85F.cfg
 toplevel=fpga/top-orangecrab0.2.vhdl
