@@ -12,21 +12,21 @@ entity toplevel is
         RESET_LOW          : boolean  := true;
         CLK_INPUT          : positive := 100000000;
         CLK_FREQUENCY      : positive := 100000000;
-        HAS_FPU            : boolean  := true;
-        HAS_BTC            : boolean  := true;
+        HAS_FPU            : boolean  := false;
+        HAS_BTC            : boolean  := false;
         USE_LITEDRAM       : boolean  := false;
         NO_BRAM            : boolean  := false;
-        DISABLE_FLATTEN_CORE : boolean := false;
+        DISABLE_FLATTEN_CORE : boolean := true;
         SCLK_STARTUPE2     : boolean := false;
         SPI_FLASH_OFFSET   : integer := 4194304;
         SPI_FLASH_DEF_CKDV : natural := 1;
         SPI_FLASH_DEF_QUAD : boolean := true;
-        LOG_LENGTH         : natural := 512;
+        LOG_LENGTH         : natural := 0;
         UART_IS_16550      : boolean  := true;
         HAS_UART1          : boolean  := true;
         USE_LITESDCARD     : boolean := false;
         ICACHE_NUM_LINES   : natural := 64;
-        NGPIO              : natural := 32
+        NGPIO              : natural := 0
         );
     port(
         ext_clk   : in  std_ulogic;
