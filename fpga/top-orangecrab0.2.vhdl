@@ -64,9 +64,10 @@ entity toplevel is
         ddram_dm      : out std_ulogic_vector(1 downto 0);
         ddram_dq      : inout std_ulogic_vector(15 downto 0);
         ddram_dqs_p   : inout std_ulogic_vector(1 downto 0);
-        ddram_dqs_n   : inout std_ulogic_vector(1 downto 0);
         ddram_clk_p   : out std_ulogic;
-        ddram_clk_n   : out std_ulogic;
+        -- only the positive differential pin is instantiated
+        --ddram_dqs_n   : inout std_ulogic_vector(1 downto 0);
+        --ddram_clk_n   : out std_ulogic;
         ddram_cke     : out std_ulogic;
         ddram_odt     : out std_ulogic;
         ddram_reset_n : out std_ulogic;
@@ -403,9 +404,10 @@ begin
                 ddram_dm        => ddram_dm,
                 ddram_dq        => ddram_dq,
                 ddram_dqs_p     => ddram_dqs_p,
-                ddram_dqs_n     => ddram_dqs_n,
                 ddram_clk_p     => ddram_clk_p,
-                ddram_clk_n     => ddram_clk_n,
+                -- only the positive differential pin is instantiated
+                --ddram_dqs_n     => ddram_dqs_n,
+                --ddram_clk_n     => ddram_clk_n,
                 ddram_cke       => ddram_cke,
                 ddram_odt       => ddram_odt,
 
