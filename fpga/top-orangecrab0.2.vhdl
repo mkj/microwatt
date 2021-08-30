@@ -340,8 +340,8 @@ begin
 
         -- Eventually dig out the frequency from
         -- litesdram generate.py sys_clk_freq
-        -- but for now, assert it's 36Mhz for orangecrab
-        assert CLK_FREQUENCY = 36000000;
+        -- but for now, assert it's 48Mhz for orangecrab
+        assert CLK_FREQUENCY = 48000000;
 
         reset_controller: entity work.soc_reset
             generic map(
