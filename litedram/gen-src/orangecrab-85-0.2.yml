@@ -22,7 +22,7 @@
     "sys_clk_freq":     48e6, # System clock frequency (DDR_clk = 4 x sys_clk)
 
     # 0 if freq >64e6 else 100. https://github.com/enjoy-digital/litedram/issues/130
-    "cmd_delay": "ECLKBRIDGE_ALIGNED",
+    "cmd_delay": "0",
 
     # Core ---------------------------------------------------------------------
     "cmd_buffer_depth": 16,    # Depth of the command buffer
