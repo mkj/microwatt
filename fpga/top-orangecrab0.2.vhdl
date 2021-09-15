@@ -16,7 +16,7 @@ entity toplevel is
         HAS_BTC            : boolean  := false;
         USE_LITEDRAM       : boolean  := false;
         NO_BRAM            : boolean  := false;
-        DISABLE_FLATTEN_CORE : boolean := false;
+        DISABLE_FLATTEN_CORE : boolean := true;
         SCLK_STARTUPE2     : boolean := false;
         SPI_FLASH_OFFSET   : integer := 4194304;
         SPI_FLASH_DEF_CKDV : natural := 1;
@@ -55,7 +55,7 @@ entity toplevel is
         sdcard_cd     : in    std_ulogic;
 
         -- DRAM wires
-        ddram_a       : out std_ulogic_vector(14 downto 0);
+        ddram_a       : out std_ulogic_vector(13 downto 0);
         ddram_ba      : out std_ulogic_vector(2 downto 0);
         ddram_ras_n   : out std_ulogic;
         ddram_cas_n   : out std_ulogic;
@@ -370,8 +370,8 @@ begin
 
         dram: entity work.litedram_wrapper
             generic map(
-                DRAM_ABITS => 25,
-                DRAM_ALINES => 15,
+                DRAM_ABITS => 24,
+                DRAM_ALINES => 14,
                 DRAM_DLINES => 16,
                 DRAM_PORT_WIDTH => 128,
                 PAYLOAD_FILE => RAM_INIT_FILE,
