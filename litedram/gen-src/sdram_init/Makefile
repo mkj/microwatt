@@ -30,6 +30,8 @@ CPPFLAGS += -I$(GENINC_DIR) -I$(SRC_DIR)/include -I$(SRC_DIR)/../../../include -
 # .. and these last, otherwise litex overrides some of our stuff
 CPPFLAGS += -I$(LXSRC_DIR) -I$(LXINC_DIR) -I$(LXINC_DIR)/base -I$(LXSRC_DIR)/liblitedram
 
+CPPFLAGS += -DMEMTEST_BUS_DEBUG -DMEMTEST_DATA_DEBUG -DMEMTEST_ADDR_DEBUG
+
 CPPFLAGS += -isystem $(shell $(CC) -print-file-name=include)
 CFLAGS = -Os -g -Wall -std=c99 -m64 -mabi=elfv2 -msoft-float -mno-string -mno-multiple -mno-vsx -mno-altivec -mlittle-endian -fno-stack-protector -mstrict-align -ffreestanding -fdata-sections -ffunction-sections -fno-delete-null-pointer-checks 
 ASFLAGS = $(CPPFLAGS) $(CFLAGS)
