@@ -47,5 +47,13 @@ static inline unsigned long csr_read_simple(unsigned long a)
 	return readl(a);
 }
 
+#define HAVE_REALRANDOM 1
+static inline long realrandom(void)
+{
+	uint64_t ret;
+	__asm__ volatile("darn %0,1" : "=r" (ret));
+	return (long)ret;
+}
+
 #endif /* __SYSTEM_H */
 
