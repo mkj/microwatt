@@ -143,6 +143,7 @@ soc_dram_sim_files = $(soc_sim_files) litedram/extras/sim_litedram.vhdl
 soc_dram_sim_obj_files = $(soc_sim_obj_files) sim_litedram_c.o
 dram_link_files=-Wl,obj_dir/Vlitedram_core__ALL.a -Wl,obj_dir/verilated.o -Wl,obj_dir/verilated_vcd_c.o -Wl,-lstdc++
 soc_dram_sim_link=$(patsubst %,-Wl$(comma)%,$(soc_dram_sim_obj_files)) $(dram_link_files)
+random_files=nonrandom.vhdl
 
 $(soc_dram_tbs): %: $(soc_dram_files) $(soc_dram_sim_files) $(soc_dram_sim_obj_files) $(flash_model_files) $(unisim_lib) $(fmf_lib) %.vhdl
 	$(GHDL) -c $(GHDLFLAGS) $(soc_dram_sim_link) $(soc_dram_files) $(soc_dram_sim_files) $(flash_model_files) $@.vhdl -e $@
@@ -155,6 +156,7 @@ RAM_INIT_FILE ?=hello_world/hello_world.hex
 # Micropython
 #MEMORY_SIZE=393216
 #RAM_INIT_FILE=micropython/firmware.hex
+
 
 FPGA_TARGET ?= ORANGE-CRAB-0.2
 
@@ -186,11 +188,12 @@ CLK_INPUT=48000000
 CLK_FREQUENCY=48000000
 LPF=constraints/orange-crab-0.2.lpf
 PACKAGE=CSFBGA285
-NEXTPNR_FLAGS=--85k --freq 48 --speed 8 --write microwatt-routed.json --timing-allow-fail
+NEXTPNR_FLAGS=--85k --freq 48 --speed 8 --write microwatt-routed.json --timing-allow-fail --ignore-loops
 OPENOCD_JTAG_CONFIG=openocd/olimex-arm-usb-tiny-h.cfg
 OPENOCD_DEVICE_CONFIG=openocd/LFE5U-85F.cfg
 toplevel=fpga/top-orangecrab0.2.vhdl
 litedram_target=orangecrab-85-0.2
+random_files=fpga/fpga-random.vhdl
 endif
 
 # ECP5-EVN
@@ -225,12 +228,12 @@ endif
 
 fpga_files = fpga/soc_reset.vhdl \
 	fpga/pp_fifo.vhd fpga/pp_soc_uart.vhd fpga/main_bram.vhdl \
-	nonrandom.vhdl
+	$(random_files)
 
 synth_files = $(core_files) $(soc_files) $(soc_extra_synth) $(fpga_files) $(clkgen) $(toplevel) $(dmi_dtm)
 
 microwatt.json: $(synth_files) $(RAM_INIT_FILE)
-	$(YOSYS) $(GHDLSYNTH) -p "$(YOSYS_EXTRA_SCRIPT) ghdl --std=08 --no-formal $(GHDL_IMAGE_GENERICS) $(synth_files) -e toplevel; synth_ecp5 -abc9 -nowidelut -json $@  $(SYNTH_ECP5_FLAGS)" $(uart_files) $(soc_extra_v)
+	$(YOSYS) $(GHDLSYNTH) -p "$(YOSYS_EXTRA_SCRIPT) ghdl --std=08 --no-formal $(GHDL_IMAGE_GENERICS) $(synth_files) -e toplevel; synth_ecp5 -nowidelut -json $@  $(SYNTH_ECP5_FLAGS)" $(uart_files) $(soc_extra_v)
 
 microwatt.v: $(synth_files) $(RAM_INIT_FILE)
 	$(YOSYS) $(GHDLSYNTH) -p "$(YOSYS_EXTRA_SCRIPT) ghdl --std=08 --no-formal $(GHDL_IMAGE_GENERICS) $(synth_files) -e toplevel; write_verilog $@"
