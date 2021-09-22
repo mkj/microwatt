@@ -10,6 +10,7 @@ LD = $(CROSS_COMPILE)ld
 OBJCOPY = $(CROSS_COMPILE)objcopy
 
 CFLAGS = -Os -g -Wall -std=c99 -msoft-float -mno-string -mno-multiple -mno-vsx -mno-altivec -mlittle-endian -fno-stack-protector -mstrict-align -ffreestanding -fdata-sections -ffunction-sections -I../include
+CFLAGS += -Werror -Wextra
 ASFLAGS = $(CFLAGS)
 LDFLAGS = -T powerpc.lds
 
