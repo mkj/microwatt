@@ -36,7 +36,7 @@ static void microdelay_waitchar(unsigned long usec)
 	while (mtfb() < until && !havechar());
 }
 
-void reboot(void)
+static void reboot(void)
 {
 	uint64_t ctrl;
 
@@ -47,7 +47,7 @@ void reboot(void)
 	putchar('X');
 	microdelay_waitchar(300000);
 	ctrl = readq(SYSCON_BASE + SYS_REG_CTRL);
-	writeq(ctrl | SYS_REG_CTRL_SOC_RESET, SYSCON_BASE + SYS_REG_CTRL);
+	writeq(ctrl | SYS_REG_CTRL_CORE_RESET, SYSCON_BASE + SYS_REG_CTRL);
 }
 
 static void hexnibble(uint8_t c)
@@ -84,6 +84,10 @@ static void time_init(void)
 	freq = readq(SYSCON_BASE + SYS_REG_CLKINFO) & SYS_REG_CLKINFO_FREQ_MASK;
 }
 
+static void(*dram_init_main)(void) = (void*)DRAM_INIT_BASE;
+
+extern void* _start;
+extern void* boot_entry;
 int main(void)
 {
 	unsigned char ucount = 0;
@@ -93,15 +97,15 @@ int main(void)
 
 	puts(mw_logo);
 
+	printhex64((uint64_t)main);
+	putchar(' ');
+	printhex64((uint64_t)_start);
+	putchar(' ');
+	printhex64((uint64_t)boot_entry);
+	puts(" is hello\r\n");
+
 	printhex64(random());
-	putchar('\r');
-	putchar('\n');
-	printhex64(random());
-	putchar('\r');
-	putchar('\n');
-	printhex64(random());
-	putchar('\r');
-	putchar('\n');
+	puts(" was a random number\r\n");
 
 	while (1) {
 		microdelay_waitchar(4000000);
@@ -122,6 +126,7 @@ int main(void)
 			ucount = 0;
 		}
 		if (ucount == 3) {
+			dram_init_main();
 			reboot();
 		}
 	}
