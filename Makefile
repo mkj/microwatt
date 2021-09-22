@@ -194,6 +194,7 @@ OPENOCD_DEVICE_CONFIG=openocd/LFE5UM5G-85F.cfg
 toplevel=fpga/top-orangecrab0.2.vhdl
 litedram_target=orangecrab-85-0.2
 random_files=fpga/fpga-random.vhdl
+SYNTH_ECP5_FLAGS=-retime -abc2
 endif
 
 # ECP5-EVN
