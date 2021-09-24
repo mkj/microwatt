@@ -35,6 +35,7 @@ CPPFLAGS += -DMEMTEST_DATA_RETRIES=3 -DMEMTEST_DEBUG_MAX_ERRORS=20
 
 CPPFLAGS += -isystem $(shell $(CC) -print-file-name=include)
 CFLAGS = -Os -g -Wall -std=c99 -m64 -mabi=elfv2 -msoft-float -mno-string -mno-multiple -mno-vsx -mno-altivec -mlittle-endian -fno-stack-protector -mstrict-align -ffreestanding -fdata-sections -ffunction-sections -fno-delete-null-pointer-checks 
+CFLAGS += -Werror
 ASFLAGS = $(CPPFLAGS) $(CFLAGS)
 LDFLAGS = -static -nostdlib -T $(OBJ)/$(PROGRAM).lds --gc-sections
 
