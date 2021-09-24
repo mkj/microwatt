@@ -15,6 +15,9 @@ ECPPROG   ?= ecpprog
 OPENOCD   ?= openocd
 VUNITRUN  ?= python3 ./run.py
 VERILATOR ?= verilator
+DFUUTIL   ?= dfu-util
+DFUSUFFIX ?= dfu-suffix
+APOLLO    ?= apollo
 
 # We need a version of GHDL built with either the LLVM or gcc backend.
 # Fedora provides this, but other distros may not. Another option is to use
@@ -264,6 +267,9 @@ ecpprog: microwatt.bit
 ecpflash: microwatt.bit
 	test -n "$(ECP_FLASH_OFFSET)" || (echo Error: No ECP_FLASH_OFFSET defined for target; exit 1)
 	$(ECPPROG) -o $(ECP_FLASH_OFFSET) $<
+
+apolloprog: microwatt.bit
+	$(APOLLO) configure $<
 
 tests = $(sort $(patsubst tests/%.out,%,$(wildcard tests/*.out)))
 tests_console = $(sort $(patsubst tests/%.console_out,%,$(wildcard tests/*.console_out)))
