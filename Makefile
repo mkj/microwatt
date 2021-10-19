@@ -249,7 +249,7 @@ microwatt_out.config: microwatt.json $(LPF)
 	mv -f $@.tmp $@
 
 microwatt.bit: microwatt_out.config
-	$(ECPPACK) --svf microwatt.svf $< $@
+	$(ECPPACK) --freq 38.8 --compress --svf microwatt.svf $< $@
 
 microwatt.svf: microwatt.bit
 
