@@ -25,7 +25,11 @@ entity toplevel is
         UART_IS_16550      : boolean  := true;
         HAS_UART1          : boolean  := true;
         USE_LITESDCARD     : boolean := false;
-        ICACHE_NUM_LINES   : natural := 64;
+        ICACHE_NUM_LINES   : natural := 8;
+        DCACHE_NUM_LINES   : natural := 8;
+        DCACHE_NUM_WAYS    : natural := 2;
+        DCACHE_TLB_SET_SIZE : natural := 16;
+        DCACHE_TLB_NUM_WAYS : natural := 2;
         NGPIO              : natural := 0
         );
     port(
@@ -210,6 +214,10 @@ begin
             HAS_UART1          => HAS_UART1,
             HAS_SD_CARD        => USE_LITESDCARD,
             ICACHE_NUM_LINES   => ICACHE_NUM_LINES,
+            DCACHE_NUM_LINES   => DCACHE_NUM_LINES,
+            DCACHE_NUM_WAYS    => DCACHE_NUM_WAYS,
+            DCACHE_TLB_SET_SIZE => DCACHE_TLB_SET_SIZE,
+            DCACHE_TLB_NUM_WAYS => DCACHE_TLB_NUM_WAYS,
             NGPIO              => NGPIO
             )
         port map (
@@ -403,6 +411,10 @@ begin
                 DRAM_ALINES => 14,
                 DRAM_DLINES => 16,
                 DRAM_PORT_WIDTH => 128,
+                NUM_WAYS => 1,
+                NUM_LINES => 2,
+                LINE_SIZE => 32,
+                NO_LS_OVERLAP => true,
                 PAYLOAD_FILE => RAM_INIT_FILE,
                 PAYLOAD_SIZE => PAYLOAD_SIZE
                 )
