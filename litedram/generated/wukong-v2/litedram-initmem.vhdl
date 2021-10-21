@@ -31,23 +31,25 @@ architecture rtl of dram_init_mem is
 
     -- XXX FIXME: Have a single init function called twice with
     -- an offset as argument
-    procedure init_load_payload(ram: inout ram_t; filename: string) is
-        file payload_file : text open read_mode is filename;
-        variable ram_line : line;
-        variable temp_word : std_logic_vector(63 downto 0);
-    begin
-        for i in 0 to RND_PAYLOAD_SIZE-1 loop
-            exit when endfile(payload_file);
-            readline(payload_file, ram_line);
-            hread(ram_line, temp_word);
-            ram((INIT_RAM_SIZE/4) + i*2) := temp_word(31 downto 0);
-            ram((INIT_RAM_SIZE/4) + i*2+1) := temp_word(63 downto 32);
-        end loop;
-        assert endfile(payload_file) report "Payload too big !" severity failure;
-    end procedure;
+    --procedure init_load_payload(ram: inout ram_t; filename: string) is
+    --    file payload_file : text open read_mode is filename;
+    --    variable ram_line : line;
+    --    variable temp_word : std_logic_vector(63 downto 0);
+    --begin
+    --    report "Opening payload file " & filename;
+    --    for i in 0 to RND_PAYLOAD_SIZE-1 loop
+    --        exit when endfile(payload_file);
+    --        readline(payload_file, ram_line);
+    --        hread(ram_line, temp_word);
+    --        ram((INIT_RAM_SIZE/4) + i*2) := temp_word(31 downto 0);
+    --        ram((INIT_RAM_SIZE/4) + i*2+1) := temp_word(63 downto 32);
+    --    end loop;
+    --    assert endfile(payload_file) report "Payload too big !" severity failure;
+    --end procedure;
 
     impure function init_load_ram(name : string) return ram_t is
         file ram_file : text open read_mode is name;
+        file payload_file : text;
         variable temp_word : std_logic_vector(63 downto 0);
         variable temp_ram : ram_t := (others => (others => '0'));
         variable ram_line : line;
@@ -64,8 +66,22 @@ architecture rtl of dram_init_mem is
             temp_ram(i*2) := temp_word(31 downto 0);
             temp_ram(i*2+1) := temp_word(63 downto 32);
         end loop;
+
         if RND_PAYLOAD_SIZE /= 0 then
-            init_load_payload(temp_ram, EXTRA_PAYLOAD_FILE);
+            --init_load_payload(temp_ram, EXTRA_PAYLOAD_FILE);
+            -- read from the payload file in a loop here to work around
+            -- 'variable with access type is not synthesizable' from ghdl
+            report "Opening payload file " & EXTRA_PAYLOAD_FILE;
+            file_open(payload_file, EXTRA_PAYLOAD_FILE);
+            for i in 0 to RND_PAYLOAD_SIZE-1 loop
+                exit when endfile(payload_file);
+                readline(payload_file, ram_line);
+                hread(ram_line, temp_word);
+                temp_ram((INIT_RAM_SIZE/4) + i*2) := temp_word(31 downto 0);
+                temp_ram((INIT_RAM_SIZE/4) + i*2+1) := temp_word(63 downto 32);
+            end loop;
+            assert endfile(payload_file) report "Payload too big !" severity failure;
+
         end if;
         return temp_ram;
     end function;
@@ -100,7 +116,7 @@ begin
         if rising_edge(clk) then
             oack <= '0';
             if (wb_in.cyc and wb_in.stb) = '1' then
-                adr := to_integer((unsigned(wb_in.adr(INIT_RAM_ABITS-1 downto 2))));
+                adr := to_integer((unsigned(wb_in.adr(INIT_RAM_ABITS - 3 downto 0))));
                 if wb_in.we = '0' then
                    obuf <= init_ram(adr);
                 else

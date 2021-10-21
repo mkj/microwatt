@@ -15,7 +15,7 @@ entity toplevel is
         HAS_FPU            : boolean  := false;
         HAS_BTC            : boolean  := false;
         USE_LITEDRAM       : boolean  := false;
-        NO_BRAM            : boolean  := false;
+        NO_BRAM            : boolean  := true;
         DISABLE_FLATTEN_CORE : boolean := true;
         SCLK_STARTUPE2     : boolean := false;
         SPI_FLASH_OFFSET   : integer := 4194304;

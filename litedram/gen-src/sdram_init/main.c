@@ -211,6 +211,12 @@ static unsigned long boot_flash(unsigned int offset)
 		printf("Copy segment %d (0x%x bytes) to %p\n", i, size, addr);
 		fl_read(addr, off, size);
 		poff += ehdr.e_phentsize;
+		for (int i = 0; i < 1024; i++) {
+			printf("%02x ", ((uint8_t*)addr)[i]);
+			if (i % 32 == 31) {
+				puts("\n");
+			}
+		}
 	}
 
 	printf("Booting from DRAM at %x\n", (unsigned int)ehdr.e_entry);
@@ -223,20 +229,38 @@ dump:
 	return -1ul;
 }
 
-static void boot_sdram(void)
+// static void boot_sdram(void)
+// {
+// 	void *s = (void *)(DRAM_INIT_BASE + 0x6000);
+// 	void *d = (void *)DRAM_BASE;
+// 	int  sz = (0x10000 - 0x6000);
+// 	printf("Copying payload to DRAM...\n");
+// 	memcpy(d, s, sz);
+// 	printf("Booting from DRAM...\n");
+// 	flush_cpu_icache();
+// }
+
+static void boot_payload(size_t offset, size_t len)
 {
-	void *s = (void *)(DRAM_INIT_BASE + 0x6000);
-	void *d = (void *)DRAM_BASE;
-	int  sz = (0x10000 - 0x6000);
+	uint8_t *s = (void *)(DRAM_INIT_BASE + offset);
+	uint8_t *d = (void *)DRAM_BASE;
 	printf("Copying payload to DRAM...\n");
-	memcpy(d, s, sz);
-	printf("Booting from DRAM...\n");
+	memcpy(d, s, len);
+	for (int i = 0; i < len; i++) {
+		printf("%02x ", d[i]);
+		if (d[i] != s[i]) {
+			printf("\n!!! %d\n", i);
+		}
+		if (i % 32 == 31) {
+			puts("\n");
+		}
+	}
+	printf("\nBooting from DRAM...\n");
 	flush_cpu_icache();
 }
-
 uint64_t main(void)
 {
-	unsigned long ftr, val;
+	unsigned long ftr, val, payload_size = 0;
 	unsigned int fl_off = 0;
 	bool try_flash = false;
 
@@ -272,8 +296,9 @@ uint64_t main(void)
 	if (ftr & SYS_REG_INFO_HAS_DRAM) {
 		val = readq(SYSCON_BASE + SYS_REG_DRAMINFO) & SYS_REG_DRAMINFO_SIZE_MASK;
 		printf("          DRAM: %ld MB\n", val / (1024 * 1024));
-		val = readq(SYSCON_BASE + SYS_REG_DRAMINITINFO);
-		printf("     DRAM INIT: %ld KB\n", val / 1024);
+		payload_size = readq(SYSCON_BASE + SYS_REG_DRAMINITINFO);
+		printf("     DRAM INIT: %lu B\n", payload_size);
+		printf("     DRAM BASE: 0x%08x B\n", DRAM_BASE);
 	}
 	val = readq(SYSCON_BASE + SYS_REG_CLKINFO) & SYS_REG_CLKINFO_FREQ_MASK;
 	printf("           CLK: %ld MHz\n", val / 1000000);
@@ -299,6 +324,10 @@ uint64_t main(void)
 		if (val != (unsigned long)-1)
 			return val;
 	}
-	boot_sdram();
-	return 0;
+	// boot_sdram();
+	// XXX hardcoded, from dram-init-mem.vhdl
+	//     constant INIT_RAM_SIZE    : integer := 24576;
+	boot_payload(24576, payload_size);
+	return DRAM_BASE;
+	// return 0;
 }
