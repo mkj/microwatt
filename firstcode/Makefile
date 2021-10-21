@@ -19,8 +19,8 @@ all: firstcode.hex
 console.o: ../lib/console.c
 	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
 
-firstcode.elf: firstcode.o head.o console.o
-	$(LD) $(LDFLAGS) -o $@ $^
+firstcode.elf: firstcode.o head.o console.o powerpc.lds
+	$(LD) $(LDFLAGS) -o $@ $(filter %.o, $^)
 
 firstcode.bin: firstcode.elf
 	$(OBJCOPY) -O binary $^ $@
