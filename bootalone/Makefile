@@ -1,11 +1,11 @@
 #### Directories
 
-OBJ = $(BUILD_DIR)/obj
+OBJ = .
+SRC_DIR=.
+GENINC_DIR=orangecrab
 
-LXINC_DIR=$(LXSRC_DIR)/include
-
-PROGRAM = sdram_init
-OBJECTS = $(OBJ)/head.o $(OBJ)/main.o $(OBJ)/sdram.o $(OBJ)/memtest.o $(OBJ)/console.o
+PROGRAM = bootalone
+OBJECTS = $(OBJ)/head.o $(OBJ)/main.o $(OBJ)/console.o
 
 #### Compiler
 
@@ -25,10 +25,7 @@ OBJCOPY = $(CROSS_COMPILE)objcopy
 CPPFLAGS = -nostdinc -D__USE_LIBC $(EXTRA_CFLAGS)
 
 # These includes must be first ...
-CPPFLAGS += -I$(GENINC_DIR) -I$(SRC_DIR)/include -I$(SRC_DIR)/../../../include -I$(SRC_DIR)/libc/include 
-
-# .. and these last, otherwise litex overrides some of our stuff
-CPPFLAGS += -I$(LXSRC_DIR) -I$(LXINC_DIR) -I$(LXINC_DIR)/base -I$(LXSRC_DIR)/liblitedram
+CPPFLAGS += -I$(GENINC_DIR) -I$(SRC_DIR)/include -I$(SRC_DIR)/../include -I$(SRC_DIR)/libc/include 
 
 CPPFLAGS += -DMEMTEST_BUS_DEBUG -DMEMTEST_DATA_DEBUG -DMEMTEST_ADDR_DEBUG
 CPPFLAGS += -DMEMTEST_DATA_RETRIES=3 -DMEMTEST_DEBUG_MAX_ERRORS=20
@@ -59,11 +56,7 @@ endif
 
 all: objdir $(OBJ)/$(PROGRAM).hex
 
-$(OBJ)/sdram.o: $(LXSRC_DIR)/liblitedram/sdram.c
-	$(call Q,CC, $(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@, $@)
-$(OBJ)/memtest.o: $(LXSRC_DIR)/libbase/memtest.c
-	$(call Q,CC, $(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@, $@)
-$(OBJ)/console.o: $(SRC_DIR)/../../../lib/console.c
+$(OBJ)/console.o: $(SRC_DIR)/../lib/console.c
 	$(call Q,CC, $(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@, $@)
 $(OBJ)/%.o : $(SRC_DIR)/%.c
 	$(call Q,CC, $(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@, $@)
@@ -90,3 +83,7 @@ $(OBJ)/$(PROGRAM).hex: $(OBJ)/$(PROGRAM).bin
 
 objdir:
 	@mkdir -p $(OBJ)
+
+apollo: $(PROGRAM).elf
+	apollo flash-info
+	apollo flash $^ 0x400000

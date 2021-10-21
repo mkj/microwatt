@@ -10,10 +10,11 @@
 #include "console.h"
 #include "microwatt_soc.h"
 #include "io.h"
-#include "sdram.h"
 #include "elf64.h"
 
 #define FLASH_LOADER_USE_MAP
+
+#define BOOTALONE_FLASH_OFFSET 0x900000
 
 int _printf(const char *fmt, ...)
 {
@@ -324,17 +325,14 @@ uint64_t main(void)
 		try_flash = true;
 	}
 	printf("\n");
-	if (ftr & SYS_REG_INFO_HAS_DRAM) {
-		printf("LiteDRAM built from Migen %s and LiteX %s\n",
-		       MIGEN_GIT_SHA1, LITEX_GIT_SHA1);
-		sdram_init();
-	}
 	if (ftr & SYS_REG_INFO_HAS_BRAM) {
 		printf("Booting from BRAM...\n");
 		return 0;
 	}
 	if (try_flash) {
-		val = boot_flash(fl_off);
+		printf("bootalone looking for flash image at 0x%x\n",
+			BOOTALONE_FLASH_OFFSET);
+		val = boot_flash(BOOTALONE_FLASH_OFFSET);
 		if (val != (unsigned long)-1)
 			return val;
 	}
