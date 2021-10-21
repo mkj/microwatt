@@ -45,8 +45,8 @@
 	 * do any endian fix ups>
 	 */
 	. = 0
-.global _start
-_start:
+.global start
+start:
 	b	boot_entry
 
 	/* QEMU enters at 0x10 */

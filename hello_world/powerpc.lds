@@ -1,6 +1,5 @@
 SECTIONS
 {
-	_start = .;
 	. = 0;
 	.head : {
 		KEEP(*(.head))
