@@ -219,10 +219,24 @@ static unsigned long boot_flash(unsigned int offset)
 		}
 	}
 
-	printf("Booting from DRAM at %x\n", (unsigned int)ehdr.e_entry);
+	printf("\nBooting from DRAM at %x\n", (unsigned int)ehdr.e_entry);
+	for (int i = 0; i < 128; i++) {
+		printf("%02x ", ((uint8_t*)ehdr.e_entry)[i]);
+		if (i % 32 == 31) {
+			puts("\n");
+		}
+	}
+	printf("\ndram:\n");
+	for (int i = 0; i < 128; i++) {
+		printf("%02x ", ((uint8_t*)DRAM_BASE + ehdr.e_entry)[i]);
+		if (i % 32 == 31) {
+			puts("\n");
+		}
+	}
+	printf("\nnow!\n");
 	flush_cpu_icache();
 	return ehdr.e_entry;
-dump:	
+dump:
 	printf("HDR: %02x %02x %02x %02x %02x %02x %02x %02x\n",
 	       ehdr.e_ident[0], ehdr.e_ident[1], ehdr.e_ident[2], ehdr.e_ident[3],
 	       ehdr.e_ident[4], ehdr.e_ident[5], ehdr.e_ident[6], ehdr.e_ident[7]);
@@ -328,6 +342,5 @@ uint64_t main(void)
 	// XXX hardcoded, from dram-init-mem.vhdl
 	//     constant INIT_RAM_SIZE    : integer := 24576;
 	boot_payload(24576, payload_size);
-	return DRAM_BASE;
-	// return 0;
+	return 0;
 }
