@@ -196,7 +196,9 @@ size_t strlen(const char *s)
 }
 #endif
 
-void console_init(void)
+// sets program state but doesn't touch registers. Use to re-init
+// a new program withouth re-initialising the uart itself.
+void console_config(void)
 {
 	uint64_t sys_info;
 	uint64_t proc_freq;
@@ -216,11 +218,23 @@ void console_init(void)
 	uart_base = UART_BASE;
 	if (uart_info & SYS_REG_UART_IS_16550) {
 		uart_is_std = true;
-		std_uart_init(proc_freq);
 	} else {
 		uart_is_std = false;
+	}
+}
+
+void console_init(void)
+{
+	uint64_t proc_freq;
+
+	console_config();
+	proc_freq = readq(SYSCON_BASE + SYS_REG_CLKINFO) & SYS_REG_CLKINFO_FREQ_MASK;
+	if (uart_is_std) {
+		std_uart_init(proc_freq);
+	} else {
 		potato_uart_init(proc_freq);
 	}
+
 }
 
 void console_set_irq_en(bool rx_irq, bool tx_irq)

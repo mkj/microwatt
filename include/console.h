@@ -2,6 +2,7 @@
 #include <stdbool.h>
 
 void console_init(void);
+void console_config(void);
 void console_set_irq_en(bool rx_irq, bool tx_irq);
 int getchar(void);
 bool havechar(void);
