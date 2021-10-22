@@ -793,7 +793,6 @@ begin
 		);
 
         wb_uart0_out.dat <= x"000000" & uart0_dat8;
-        wb_uart0_out.stall <= not wb_uart0_out.ack;
     end generate;
 
     uart0_16550 : if UART0_IS_16550 generate
@@ -830,7 +829,6 @@ begin
         end process;
 
         wb_uart0_out.dat <= x"000000" & uart0_dat8;
-        wb_uart0_out.stall <= not wb_uart0_out.ack;
     end generate;
 
     uart0_valentyusb : if UART0_IS_VALENTYUSB generate
@@ -893,6 +891,7 @@ begin
         end process;
     end generate;
 
+    wb_uart0_out.stall <= not wb_uart0_out.ack;
 
     --
     -- UART1
