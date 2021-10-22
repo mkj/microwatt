@@ -7,14 +7,13 @@
 
 #include <generated/git.h>
 
+#include "bootalone.h"
 #include "console.h"
 #include "microwatt_soc.h"
 #include "io.h"
 #include "elf64.h"
 
 #define FLASH_LOADER_USE_MAP
-
-#define BOOTALONE_FLASH_OFFSET 0x900000
 
 int _printf(const char *fmt, ...)
 {
@@ -280,6 +279,8 @@ uint64_t main(void)
 	bool try_flash = false;
 
 	/* Init the UART */
+	// console_config();
+	writeb('x', UART_BASE + UART_REG_TX);
 	console_init();
 
 	printf("\n\nWelcome to Microwatt !\n\n");

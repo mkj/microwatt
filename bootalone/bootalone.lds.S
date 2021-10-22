@@ -1,13 +1,14 @@
 #include "microwatt_soc.h"
+#include "bootalone.h"
 
 SECTIONS
 {
-	. = 0x50000;
+	. = BOOTALONE_BASE;
 	start = .;
 	.head : {
 		KEEP(*(.head))
 	}
-	. = 0x50000 | 0x1000;
+	. = BOOTALONE_BASE + 0x2000;
 
 	.text : { *(.text*) *(.sfpr) *(.rodata*) }
 	.data : { *(.data*) }

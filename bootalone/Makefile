@@ -19,6 +19,7 @@ ifneq ("$(ARCH)", "ppc64le")
 CC = $(CROSS_COMPILE)gcc
 LD = $(CROSS_COMPILE)ld
 OBJCOPY = $(CROSS_COMPILE)objcopy
+STRIP = $(CROSS_COMPILE)strip
 
 #### Flags
 
@@ -58,14 +59,16 @@ all: objdir $(OBJ)/$(PROGRAM).hex
 
 $(OBJ)/console.o: $(SRC_DIR)/../lib/console.c
 	$(call Q,CC, $(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@, $@)
-$(OBJ)/%.o : $(SRC_DIR)/%.c
+$(OBJ)/%.o : $(SRC_DIR)/%.c bootalone.h
 	$(call Q,CC, $(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@, $@)
-$(OBJ)/%.o : $(SRC_DIR)/%.S
+$(OBJ)/%.o : $(SRC_DIR)/%.S bootalone.h
 	$(call Q,AS, $(CC) $(ASFLAGS) -c $< -o $@, $@)
 $(OBJ)/%.o : $(SRC_DIR)/libc/src/%.c
 	$(call Q,CC, $(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@, $@)
-$(OBJ)/%.lds : $(SRC_DIR)/%.lds.S
+$(OBJ)/%.lds : $(SRC_DIR)/%.lds.S bootalone.h
 	$(call Q,CC, $(CC) $(CPPFLAGS) -P -E $< -o $@, $@)
+$(OBJ)/%.elf.strip : $(SRC_DIR)/%.elf
+	$(call Q,STRIP, $(STRIP) $< -o $@, $@)
 
 LIBC_SRC := $(wildcard $(SRC_DIR)/libc/src/*.c)
 LIBC_OBJ := $(patsubst $(SRC_DIR)/libc/src/%.c, $(OBJ)/%.o,$(LIBC_SRC))

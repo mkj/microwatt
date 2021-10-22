@@ -13,8 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "bootalone.h"
 
-#define STACK_TOP	0xff006000
+// allow 128kB for program
+#define STACK_TOP	(BOOTALONE_BASE + 0x20000)
 
 #define FIXUP_ENDIAN						   \
 	tdi   0,0,0x48;	  /* Reverse endian of b . + 8		*/ \
