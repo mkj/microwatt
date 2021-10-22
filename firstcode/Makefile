@@ -28,6 +28,10 @@ firstcode.bin: firstcode.elf
 firstcode.hex: firstcode.bin
 	../scripts/bin2hex.py $^ > $@
 
+apollo: firstcode.elf
+	apollo flash-info
+	apollo flash $< 0x400000
+
 clean:
 	@rm -f *.o firstcode.elf firstcode.bin firstcode.hex
 distclean: clean
