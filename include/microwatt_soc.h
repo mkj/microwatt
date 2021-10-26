@@ -10,7 +10,9 @@
 #define BRAM_BASE       0x80000000  /* Internal BRAM */
 
 #define SYSCON_BASE	0xc0000000  /* System control regs */
-#define UART_BASE	0xc0002000  /* UART */
+#define UART0_BASE      0xc0002000  /* UART */
+#define UART_BASE       UART_BASE
+#define UART1_BASE      0xc0003000  /* UART */
 #define XICS_ICP_BASE   0xc0004000  /* Interrupt controller */
 #define XICS_ICS_BASE   0xc0005000  /* Interrupt controller */
 #define SPI_FCTRL_BASE  0xc0006000  /* SPI flash controller registers */

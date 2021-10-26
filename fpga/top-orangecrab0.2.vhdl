@@ -22,7 +22,8 @@ entity toplevel is
         SPI_FLASH_DEF_CKDV : natural := 1;
         SPI_FLASH_DEF_QUAD : boolean := true;
         LOG_LENGTH         : natural := 0;
-        UART_IS_16550      : boolean  := true;
+        UART_IS_16550      : boolean  := false;
+        UART_IS_VALENTYUSB : boolean  := true;
         HAS_UART1          : boolean  := true;
         USE_LITESDCARD     : boolean := false;
         ICACHE_NUM_LINES   : natural := 64;
@@ -35,6 +36,11 @@ entity toplevel is
         -- UART0 signals:
         uart_main_tx : out std_ulogic;
         uart_main_rx : in  std_ulogic;
+
+        -- USB signals:
+        usb_d_p    : in std_ulogic;
+        usb_d_n    : in std_ulogic;
+        usb_pullup : out std_ulogic;
 
         -- LEDs
         led0_b  : out std_ulogic;
@@ -207,6 +213,7 @@ begin
             SPI_FLASH_DEF_QUAD => SPI_FLASH_DEF_QUAD,
             LOG_LENGTH         => LOG_LENGTH,
             UART0_IS_16550     => UART_IS_16550,
+            UART0_IS_VALENTYUSB=> UART_IS_VALENTYUSB,
             HAS_UART1          => HAS_UART1,
             HAS_SD_CARD        => USE_LITESDCARD,
             ICACHE_NUM_LINES   => ICACHE_NUM_LINES,
@@ -215,11 +222,16 @@ begin
         port map (
             -- System signals
             system_clk        => system_clk,
+            clk_48            => ext_clk,
             rst               => soc_rst,
 
             -- UART signals
-            uart0_txd         => uart_main_tx,
-            uart0_rxd         => uart_main_rx,
+            uart1_txd         => uart_main_tx,
+            uart1_rxd         => uart_main_rx,
+
+            usb_d_p           => usb_d_p,
+            usb_d_n           => usb_d_n,
+            usb_pullup        => usb_pullup,
 
 	    -- UART1 signals
 	    --uart1_txd         => uart_pmod_tx,

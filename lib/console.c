@@ -215,12 +215,13 @@ void console_config(void)
 	if (uart_freq == 0)
 		uart_freq = proc_freq;
 
-	uart_base = UART_BASE;
-	if (uart_info & SYS_REG_UART_IS_16550) {
-		uart_is_std = true;
-	} else {
-		uart_is_std = false;
-	}
+	uart_base = UART1_BASE;
+	uart_is_std = true;
+	// if (uart_info & SYS_REG_UART_IS_16550) {
+	// 	uart_is_std = true;
+	// } else {
+	// 	uart_is_std = false;
+	// }
 }
 
 void console_init(void)
