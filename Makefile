@@ -270,6 +270,13 @@ dfuprog: microwatt.dfu
 apolloprog: microwatt.bit
 	$(APOLLO) configure $<
 
+# "flash-info" is required otherwise it sometimes isn't detected.
+# 0x80000 is orangecrab bootloader offset for bitstream.
+# offset argument to apollo only works with patched version
+apolloflash: microwatt.bit
+	$(APOLLO) flash-info
+	$(APOLLO) flash $< 0x80000
+
 tests = $(sort $(patsubst tests/%.out,%,$(wildcard tests/*.out)))
 tests_console = $(sort $(patsubst tests/%.console_out,%,$(wildcard tests/*.console_out)))
 
