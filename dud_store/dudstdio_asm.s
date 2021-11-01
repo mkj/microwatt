@@ -26,77 +26,101 @@ dud_number:
 0:	addis 2,12,.TOC.-.LCF0@ha
 	addi 2,2,.TOC.-.LCF0@l
 	.localentry	dud_number,.-dud_number
-	mflr 0
-	std 30,-16(1)
-	std 31,-8(1)
-	std 0,16(1)
-	stdu 1,-160(1)
+	mflr %r0
+	std %r30,-16(%r1)
+	std %r31,-8(%r1)
+	std %r0,16(%r1)
+	stdu %r1,-160(%r1)
 	.cfi_def_cfa_offset 160
 	.cfi_offset 65, 16
 	.cfi_offset 30, -16
 	.cfi_offset 31, -8
-	li 10,0
-	mr 31,3
-	rldicl 9,4,0,32
-	stw 4,128(1)
-	std 3,120(1)
-	addi 30,1,32
+	li %r10,0
+	mr %r31,%r3
+	rldicl %r9,%r4,0,32
+	stw %r4,128(%r1)
+	std %r3,120(%r1)
+	addi %r30,%r1,32
+#	b .L2
+.L3:
+# failing loop
+	divdu %r7,%r31,%r9
+	mulld %r8,%r7,%r9
+	subf %r8,%r8,%r31
+	mr %r31,%r7
+	stbx %r8,%r30,%r10
+	addi %r10,%r10,1
+	divdu %r7,%r31,%r9
+	mulld %r8,%r7,%r9
+	subf %r8,%r8,%r31
+	mr %r31,%r7
+	stbx %r8,%r30,%r10
+	addi %r10,%r10,1
+	divdu %r7,%r31,%r9
+	mulld %r8,%r7,%r9
+	subf %r8,%r8,%r31
+	mr %r31,%r7
+	stbx %r8,%r30,%r10
+	addi %r10,%r10,1
 .L2:
-	cmpdi 0,31,0
-	bne 0,.L3
-	addis 3,2,.LC0@toc@ha
-	extsw 5,10
-	mr 4,30
-	addi 3,3,.LC0@toc@l
+#	cmpdi %cr0,%r31,0
+#	bne %cr0,.L3
+	addis %r3,%r2,.LC0@toc@ha
+	extsw %r5,%r10
+	mr %r4,%r30
+	addi %r3,%r3,.LC0@toc@l
 	bl printhex
 	nop
-	ld 9,120(1)
-	lwz 8,128(1)
+	ld %r9,120(%r1)
+	lwz %r8,128(%r1)
+#	b .L4
+.L5:
+# OK loop
+	divdu %r7,%r9,%r8
+	mulld %r10,%r7,%r8
+	subf %r10,%r10,%r9
+	mr %r9,%r7
+	stbx %r10,%r30,%r31
+	addi %r31,%r31,1
+	divdu %r7,%r9,%r8
+	mulld %r10,%r7,%r8
+	subf %r10,%r10,%r9
+	mr %r9,%r7
+	stbx %r10,%r30,%r31
+	addi %r31,%r31,1
+	divdu %r7,%r9,%r8
+	mulld %r10,%r7,%r8
+	subf %r10,%r10,%r9
+	mr %r9,%r7
+	stbx %r10,%r30,%r31
+	addi %r31,%r31,1
 .L4:
-	cmpdi 0,9,0
-	bne 0,.L5
-	addis 3,2,.LC1@toc@ha
-	extsw 5,31
-	mr 4,30
-	addi 3,3,.LC1@toc@l
+#	cmpdi %cr0,%r9,0
+#	bne %cr0,.L5
+	addis %r3,%r2,.LC1@toc@ha
+	extsw %r5,%r31
+	mr %r4,%r30
+	addi %r3,%r3,.LC1@toc@l
 	bl printhex
 	nop
-	addis 3,2,.LC2@toc@ha
-	addi 4,1,128
-	li 5,4
-	addi 3,3,.LC2@toc@l
+	addis %r3,%r2,.LC2@toc@ha
+	addi %r4,%r1,128
+	li %r5,4
+	addi %r3,%r3,.LC2@toc@l
 	bl printhex
 	nop
-	addis 3,2,.LC3@toc@ha
-	addi 4,1,120
-	li 5,8
-	addi 3,3,.LC3@toc@l
+	addis %r3,%r2,.LC3@toc@ha
+	addi %r4,%r1,120
+	li %r5,8
+	addi %r3,%r3,.LC3@toc@l
 	bl printhex
 	nop
-	addi 1,1,160
-	.cfi_remember_state
+	addi %r1,%r1,160
 	.cfi_def_cfa_offset 0
 	b _restgpr0_30
 	.cfi_restore 31
 	.cfi_restore 30
 	.cfi_restore 65
-.L3:
-	.cfi_restore_state
-	divdu 7,31,9
-	mulld 8,7,9
-	subf 8,8,31
-	mr 31,7
-	stbx 8,30,10
-	addi 10,10,1
-	b .L2
-.L5:
-	divdu 7,9,8
-	mulld 10,7,8
-	subf 10,10,9
-	mr 9,7
-	stbx 10,30,31
-	addi 31,31,1
-	b .L4
 	.long 0
 	.byte 0,0,0,1,128,2,0,0
 	.cfi_endproc
