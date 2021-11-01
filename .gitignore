@@ -1,7 +1,6 @@
 *.o
 *~
 *.cf
-*.s
 *.bit
 *_out.config
 microwatt.json

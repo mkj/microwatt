@@ -7,11 +7,12 @@ endif
 
 CC = $(CROSS_COMPILE)gcc
 LD = $(CROSS_COMPILE)ld
+AS = $(CROSS_COMPILE)as
 OBJCOPY = $(CROSS_COMPILE)objcopy
 
 CFLAGS = -Os -g -Wall -std=c99 -msoft-float -mno-string -mno-multiple -mno-vsx -mno-altivec -mlittle-endian -fno-stack-protector -mstrict-align -ffreestanding -fdata-sections -ffunction-sections -I../include
 CFLAGS += -Werror -Wextra
-ASFLAGS = $(CFLAGS)
+ASFLAGS = 
 LDFLAGS = -T powerpc.lds
 
 all: dud_store.hex
@@ -19,7 +20,7 @@ all: dud_store.hex
 console.o: ../lib/console.c
 	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
 
-dud_store.elf: dud_store.o head.o console.o dudstdio.o
+dud_store.elf: dud_store.o head.o console.o dudstdio_asm.o printhex.o
 	$(LD) $(LDFLAGS) -o $@ $^
 
 dud_store.bin: dud_store.elf
@@ -33,3 +34,9 @@ clean:
 distclean: clean
 	rm -f *~
 
+
+apollo: dud_store.elf
+	apollo flash-info
+	apollo flash $^ 0x400000
+
+.PHONY: apollo
