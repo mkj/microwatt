@@ -17,6 +17,11 @@ void dud_number(unsigned long long num, int base)
 	char tmp[86];
 	int i;
 
+	// tmp[0] = 0x39;
+	// tmp[1] = 0x38;
+	// tmp[2] = 0x0;
+	// puts(tmp);
+
 	i = 0;
 	orignum = num;
 	while (num != 0) {
@@ -29,7 +34,6 @@ void dud_number(unsigned long long num, int base)
 	i = 0;
 	while (num != 0) {
 		unsigned int rem = do_div(num, base);
-		// tmp[i++] = digits[rem];
 		tmp[i++] = rem;
 	}
 	printhex("dud_number2", tmp, i);
@@ -39,6 +43,7 @@ void dud_number(unsigned long long num, int base)
 
 void printhex(const char *msg, const void* buf, long len) {
 	puts(msg);
+	puts("\n");
 	long d = 32768;
 	if (len < d) {
 		d = len;

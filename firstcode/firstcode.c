@@ -7,7 +7,6 @@
 #include "microwatt_soc.h"
 #include "io.h"
 
-static unsigned long freq;
 
 static char mw_logo[] =
 
@@ -21,6 +20,7 @@ static char mw_logo[] =
 "    ;..;      \n"
 "    `ww'   \n";
 
+static unsigned long freq;
 static uint64_t mtfb(void)
 {
 	uint64_t ret;
