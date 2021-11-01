@@ -43,19 +43,10 @@ dud_number:
 .L3:
 # failing loop
 
-# %r31 = 765
-# %r9 = 10
-
-#	divdu %r7,%r31,%r9
-	li %r7, 76
-
-#	mulld %r8,%r7,%r9
-#	subf %r8,%r8,%r31
-#	mr %r31,%r7
-
 	addi %r30,%r1,32 # output buffer on stack
-#	stbx %r8,%r30,%r10 # this fails?
-	li %r3, 0x24 # something arbitrary
+	# lis %r30, 0x0500 # or an arbitrary address 0x0500000
+
+	li %r3, 0x24 # something arbitrary to test printing
 	bl uart_hexdigit
 
 	li %r8, 0x45  # value1 to store
@@ -73,79 +64,6 @@ dud_number:
 	mr %r3, %r11
 	bl uart_hexdigit
 
-# 	addi %r30,%r1,32 # output buffer on stack
-# 	li %r8, 5 # value to store
-# #	stbx %r8,%r30,%r10 # this fails?
-# 	stb %r8,0(%r30)
-
-# 	addis %r3,%r2,.LC0@toc@ha # string title
-# 	addi %r3,%r3,.LC0@toc@l
-# 	mr %r4,%r30 # buffer to print
-# 	li %r5,1 # length=1
-# 	bl printhex
-
-	# divdu %r7,%r31,%r9
-	# mulld %r8,%r7,%r9
-	# subf %r8,%r8,%r31
-	# mr %r31,%r7
-	# stbx %r8,%r30,%r10
-	# addi %r10,%r10,1
-
-	# divdu %r7,%r31,%r9
-	# mulld %r8,%r7,%r9
-	# subf %r8,%r8,%r31
-	# mr %r31,%r7
-	# stbx %r8,%r30,%r10
-	# addi %r10,%r10,1
-.L2:
-#	cmpdi %cr0,%r31,0
-#	bne %cr0,.L3
-	nop
-	ld %r9,120(%r1)
-	lwz %r8,128(%r1)
-#	b .L4
-.L5:
-	li %r31, 0 # reset i=0
-# OK loop
-	divdu %r7,%r9,%r8
-	mulld %r10,%r7,%r8
-	subf %r10,%r10,%r9
-	mr %r9,%r7
-	stbx %r10,%r30,%r31
-	addi %r31,%r31,1
-	divdu %r7,%r9,%r8
-	mulld %r10,%r7,%r8
-	subf %r10,%r10,%r9
-	mr %r9,%r7
-	stbx %r10,%r30,%r31
-	addi %r31,%r31,1
-	divdu %r7,%r9,%r8
-	mulld %r10,%r7,%r8
-	subf %r10,%r10,%r9
-	mr %r9,%r7
-	stbx %r10,%r30,%r31
-	addi %r31,%r31,1
-.L4:
-#	cmpdi %cr0,%r9,0
-#	bne %cr0,.L5
-	addis %r3,%r2,.LC1@toc@ha
-	extsw %r5,%r31
-	mr %r4,%r30
-	addi %r3,%r3,.LC1@toc@l
-	bl printhex
-	nop
-	addis %r3,%r2,.LC2@toc@ha
-	addi %r4,%r1,128
-	li %r5,4
-	addi %r3,%r3,.LC2@toc@l
-	bl printhex
-	nop
-	addis %r3,%r2,.LC3@toc@ha
-	addi %r4,%r1,120
-	li %r5,8
-	addi %r3,%r3,.LC3@toc@l
-	bl printhex
-	nop
 	addi %r1,%r1,160
 	.cfi_def_cfa_offset 0
 	b _restgpr0_30
@@ -163,23 +81,27 @@ uart_hexdigit:
 	ori %r5, %r5, 0x3000
 
 	li %r4, 0x2b # '+'
-	sync
 	stbcix %r4,0,%r5
 
 	# high nibble
 	rldicl %r4, %r3, 60, 60
+	cmpdi %cr0,%r4,0xa
+	blt .nothex1
+	addi %r4,%r4, 'a'-'0'-0xa # a-f digit
+.nothex1:
 	addi %r4,%r4, 0x30
-	sync
 	stbcix %r4,0,%r5
 
 	# low nibble
 	rldicl %r4, %r3, 0, 60
+	cmpdi %cr0,%r4,0xa
+	blt .nothex2
+	addi %r4,%r4, 'a'-'0'-0xa # a-f digit
+.nothex2:
 	addi %r4,%r4, 0x30
-	sync
 	stbcix %r4,0,%r5
 
 	li %r4, 0x2d # '-'
-	sync
 	stbcix %r4,0,%r5
 	blr
 
