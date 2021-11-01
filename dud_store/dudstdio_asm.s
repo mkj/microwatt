@@ -44,24 +44,32 @@ dud_number:
 #	b .L2
 .L3:
 # failing loop
-	divdu %r7,%r31,%r9
+
+# %r31 = 765
+# %r9 = 10
+
+#	divdu %r7,%r31,%r9
+	li %r7, 76
+
 	mulld %r8,%r7,%r9
 	subf %r8,%r8,%r31
 	mr %r31,%r7
 	stbx %r8,%r30,%r10
 	addi %r10,%r10,1
-	divdu %r7,%r31,%r9
-	mulld %r8,%r7,%r9
-	subf %r8,%r8,%r31
-	mr %r31,%r7
-	stbx %r8,%r30,%r10
-	addi %r10,%r10,1
-	divdu %r7,%r31,%r9
-	mulld %r8,%r7,%r9
-	subf %r8,%r8,%r31
-	mr %r31,%r7
-	stbx %r8,%r30,%r10
-	addi %r10,%r10,1
+
+	# divdu %r7,%r31,%r9
+	# mulld %r8,%r7,%r9
+	# subf %r8,%r8,%r31
+	# mr %r31,%r7
+	# stbx %r8,%r30,%r10
+	# addi %r10,%r10,1
+
+	# divdu %r7,%r31,%r9
+	# mulld %r8,%r7,%r9
+	# subf %r8,%r8,%r31
+	# mr %r31,%r7
+	# stbx %r8,%r30,%r10
+	# addi %r10,%r10,1
 .L2:
 #	cmpdi %cr0,%r31,0
 #	bne %cr0,.L3
@@ -75,6 +83,7 @@ dud_number:
 	lwz %r8,128(%r1)
 #	b .L4
 .L5:
+	li %r31, 0 # reset i=0
 # OK loop
 	divdu %r7,%r9,%r8
 	mulld %r10,%r7,%r8
