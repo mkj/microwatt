@@ -43,8 +43,9 @@ dud_number:
 .L3:
 # failing loop
 
-	addi %r30,%r1,32 # output buffer on stack
-	# lis %r30, 0x0500 # or an arbitrary address 0x0500000
+	# addi %r30,%r1,32 # output buffer on stack
+	# lis %r30, 0x0500 # or an arbitrary main address 0x0500000
+	lis %r30, 0x4500 # or an arbitrary DRAM address 0x4500000
 
 	li %r3, 0x24 # something arbitrary to test printing
 	bl uart_hexdigit
