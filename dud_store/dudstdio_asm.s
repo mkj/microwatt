@@ -52,6 +52,12 @@ dud_number:
 
 	li %r8, 0x45  # value1 to store
 	stb %r8,0(%r30)
+
+	# # delay = 0x2dc6c00 = 48e6
+	# lis %r3, 0x2dc
+	# ori %r3, %r3, 0x6c00
+	# bl delay
+
 	lbz %r10,0(%r30)
 
 	li %r8, 0x89  # value2 to store
@@ -105,6 +111,15 @@ uart_hexdigit:
 
 	li %r4, 0x2d # '-'
 	stbcix %r4,0,%r5
+	blr
+
+####
+
+delay:
+.iter:
+	cmpdi %cr0, %r3, 0
+	addi %r3, %r3, -1
+	bgt .iter
 	blr
 
 .LFE0:
