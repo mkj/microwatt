@@ -78,7 +78,8 @@ uart_hexdigit:
 	# uart1 TX 0xc0003000
 	# change to 0xc0002000 for uart0
 	lis %r5, 0xc000
-	ori %r5, %r5, 0x3000
+	# ori %r5, %r5, 0x3000
+	ori %r5, %r5, 0x2000
 
 	li %r4, 0x2b # '+'
 	stbcix %r4,0,%r5

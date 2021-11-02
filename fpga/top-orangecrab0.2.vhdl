@@ -22,9 +22,9 @@ entity toplevel is
         SPI_FLASH_DEF_CKDV : natural := 1;
         SPI_FLASH_DEF_QUAD : boolean := true;
         LOG_LENGTH         : natural := 0;
-        UART_IS_16550      : boolean  := false;
-        UART_IS_VALENTYUSB : boolean  := true;
-        HAS_UART1          : boolean  := true;
+        UART_IS_16550      : boolean  := true;
+        UART_IS_VALENTYUSB : boolean  := false;
+        HAS_UART1          : boolean  := false;
         USE_LITESDCARD     : boolean := false;
         ICACHE_NUM_LINES   : natural := 64;
         NGPIO              : natural := 0
@@ -226,8 +226,8 @@ begin
             rst               => soc_rst,
 
             -- UART signals
-            uart1_txd         => uart_main_tx,
-            uart1_rxd         => uart_main_rx,
+            uart0_txd         => uart_main_tx,
+            uart0_rxd         => uart_main_rx,
 
             usb_d_p           => usb_d_p,
             usb_d_n           => usb_d_n,
