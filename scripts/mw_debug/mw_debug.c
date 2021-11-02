@@ -17,8 +17,8 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
-#include <urjtag/urjtag.h>
 #include <inttypes.h>
+#include <errno.h>
 
 #define DBG_WB_ADDR		0x00
 #define DBG_WB_DATA		0x01
@@ -206,144 +206,7 @@ static struct backend sim_backend = {
 	.command = sim_command,
 };
 
-/* -------------- JTAG backend -------------- */
-
-static urj_chain_t *jc;
-
-static int jtag_init(const char *target)
-{
-	const char *sep;
-	const char *cable;
-	char *params[] = { NULL, };
-	urj_part_t *p;
-	uint32_t id;
-	int rc, part;
-
-	if (!target)
-		target = "probe";
-	sep = strchr(target, ':');
-	cable = strndup(target, sep - target);
-	if (sep && *sep) {
-		fprintf(stderr, "jtag cable params not supported yet\n");
-		return -1;
-	}
-	if (debug)
-		printf("Opening jtag backend cable '%s'\n", cable);
-
-	jc = urj_tap_chain_alloc();
-	if (!jc) {
-		fprintf(stderr, "Failed to alloc JTAG\n");
-		return -1;
-	}
-	jc->main_part = 0;
-
-	if (strcmp(cable, "probe") == 0) {
-		char *cparams[] = { NULL, NULL,};
-		rc = urj_tap_cable_usb_probe(cparams);
-		if (rc != URJ_STATUS_OK) {
-			fprintf(stderr, "JTAG cable probe failed\n");
-			return -1;
-		}
-		cable = strdup(cparams[1]);
-	}
-	rc = urj_tap_chain_connect(jc, cable, params);
-	if (rc != URJ_STATUS_OK) {
-		fprintf(stderr, "JTAG cable detect failed\n");
-		return -1;
-	}
-
-	/* XXX Hard wire part 0, that might need to change (use params and detect !) */
-	rc = urj_tap_manual_add(jc, 6);
-	if (rc < 0) {
-		fprintf(stderr, "JTAG failed to add part !\n");
-		return -1;
-	}
-	if (jc->parts == NULL || jc->parts->len == 0) {
-		fprintf(stderr, "JTAG Something's wrong after adding part !\n");
-		return -1;
-	}
-	urj_part_parts_set_instruction(jc->parts, "BYPASS");
-
-	jc->active_part = part = 0;
-
-	p = urj_tap_chain_active_part(jc);
-	if (!p) {
-		fprintf(stderr, "Failed to get active JTAG part\n");
-		return -1;
-	}
-	rc = urj_part_data_register_define(p, "IDCODE_REG", 32);
-	if (rc != URJ_STATUS_OK) {
-		fprintf(stderr, "JTAG failed to add IDCODE_REG register !\n");
-		return -1;
-	}
-	if (urj_part_instruction_define(p, "IDCODE", "001001", "IDCODE_REG") == NULL) {
-		fprintf(stderr, "JTAG failed to add IDCODE instruction !\n");
-		return -1;
-	}
-	rc = urj_part_data_register_define(p, "USER2_REG", 74);
-	if (rc != URJ_STATUS_OK) {
-		fprintf(stderr, "JTAG failed to add USER2_REG register !\n");
-		return -1;
-	}
-	if (urj_part_instruction_define(p, "USER2", "000011", "USER2_REG") == NULL) {
-		fprintf(stderr, "JTAG failed to add USER2 instruction !\n");
-		return -1;
-	}
-	urj_part_set_instruction(p, "IDCODE");
-	urj_tap_chain_shift_instructions(jc);
-	urj_tap_chain_shift_data_registers(jc, 1);
-        id = urj_tap_register_get_value(p->active_instruction->data_register->out);
-	printf("Found device ID: 0x%08x\n", id);
-	urj_part_set_instruction(p, "USER2");
-	urj_tap_chain_shift_instructions(jc);
-
-	return 0;
-}
-
-static int jtag_reset(void)
-{
-	return 0;
-}
-
-static int jtag_command(uint8_t op, uint8_t addr, uint64_t *data)
-{
-	urj_part_t *p = urj_tap_chain_active_part(jc);
-	urj_part_instruction_t *insn;
-	urj_data_register_t *dr;
-	uint64_t d = data ? *data : 0;
-	int rc;
-
-	if (!p)
-		return -1;
-	insn = p->active_instruction;
-	if (!insn)
-		return -1;
-	dr = insn->data_register;
-	if (!dr)
-		return -1;
-	rc = urj_tap_register_set_value_bit_range(dr->in, op, 1, 0);
-	if (rc != URJ_STATUS_OK)
-		return -1;
-	rc = urj_tap_register_set_value_bit_range(dr->in, d, 65, 2);
-	if (rc != URJ_STATUS_OK)
-		return -1;
-	rc = urj_tap_register_set_value_bit_range(dr->in, addr, 73, 66);
-	if (rc != URJ_STATUS_OK)
-		return -1;
-	rc = urj_tap_chain_shift_data_registers(jc, 1);
-	if (rc != URJ_STATUS_OK)
-		return -1;
-	rc = urj_tap_register_get_value_bit_range(dr->out, 1, 0);
-	if (data)
-		*data = urj_tap_register_get_value_bit_range(dr->out, 65, 2);
-	return rc;
-}
-
-static struct backend jtag_backend = {
-	.init	= jtag_init,
-	.reset = jtag_reset,
-	.command = jtag_command,
-};
+static struct backend jtag_backend;
 
 static int dmi_read(uint8_t addr, uint64_t *data)
 {
