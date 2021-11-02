@@ -50,6 +50,19 @@ dud_number:
 	li %r3, 0x24 # something arbitrary to test printing
 	bl uart_hexdigit
 
+	li %r22, 11
+.storeloop:
+	mr %r3, %r22
+	bl uart_hexdigit
+	stbx %r22,%r22,%r30
+	lbzx %r3,%r22,%r30
+	bl uart_hexdigit
+
+	#addi %r22, %r22, 64 ; every second is blank
+	addi %r22, %r22, 128
+	cmpdi %cr0, %r22, 1000 # iter count
+	bng .storeloop
+
 	li %r8, 0x45  # value1 to store
 	stb %r8,0(%r30)
 
@@ -111,6 +124,14 @@ uart_hexdigit:
 
 	li %r4, 0x2d # '-'
 	stbcix %r4,0,%r5
+
+	# ~10ms? delay
+	lis %r3, 0x0002
+.iter1:
+	cmpdi %cr0, %r3, 0
+	addi %r3, %r3, -1
+	bgt .iter1
+
 	blr
 
 ####
