@@ -10,17 +10,17 @@ LD = $(CROSS_COMPILE)ld
 AS = $(CROSS_COMPILE)as
 OBJCOPY = $(CROSS_COMPILE)objcopy
 
-CFLAGS = -Os -g -Wall -std=c99 -msoft-float -mno-string -mno-multiple -mno-vsx -mno-altivec -mlittle-endian -fno-stack-protector -mstrict-align -ffreestanding -fdata-sections -ffunction-sections -I../include
+CFLAGS = -Os -g -Wno-unused -Wall -std=c99 -msoft-float -mno-string -mno-multiple -mno-vsx -mno-altivec -mlittle-endian -fno-stack-protector -mstrict-align -ffreestanding -fdata-sections -ffunction-sections -I../include
 CFLAGS += -Werror -Wextra
 ASFLAGS = 
-LDFLAGS = -T powerpc.lds
+LDFLAGS = -T powerpc.lds --gc-sections
 
 all: dud_store.hex
 
 console.o: ../lib/console.c
 	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
 
-dud_store.elf: dud_store.o head.o console.o dudstdio_asm.o printhex.o
+dud_store.elf: dud_store.o head.o console.o dudstdio_asm.o 
 	$(LD) $(LDFLAGS) -o $@ $^
 
 dud_store.bin: dud_store.elf

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#define STACK_TOP 0x9000
+#define STACK_TOP 6200
 
 #define FIXUP_ENDIAN						   \
 	tdi   0,0,0x48;	  /* Reverse endian of b . + 8		*/ \
@@ -61,7 +61,7 @@ start:
 .global boot_entry
 boot_entry:
 	/* setup stack */
-	LOAD_IMM64(%r1, STACK_TOP - 0x4000)
+	LOAD_IMM64(%r1, STACK_TOP - 200)
 	LOAD_IMM64(%r12, main)
 	mtctr	%r12,
 	bctrl

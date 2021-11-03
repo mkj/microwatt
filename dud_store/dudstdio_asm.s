@@ -1,20 +1,6 @@
 	.file	"dudstdio.c"
 	.machine power8
 	.abiversion 2
-	.section	".text"
-	.section	.rodata.dud_number.str1.8,"aMS",@progbits,1
-	.align 3
-.LC0:
-	.string	"dud_number1"
-	.align 3
-.LC1:
-	.string	"dud_number2"
-	.align 3
-.LC2:
-	.string	"^ base2"
-	.align 3
-.LC3:
-	.string	"^ num2"
 	.section	.text.dud_number,"ax",@progbits
 	.align 2
 	.globl dud_number
@@ -47,11 +33,23 @@ dud_number:
 	# lis %r30, 0x0500 # or an arbitrary main address 0x0500000
 	lis %r30, 0x4500 # or an arbitrary DRAM address 0x4500000
 
+	# # edge of 512MB dram
+	# lis %r30, 0x6000
+	# addi %r30, %r30, -256
+
 	li %r3, 0x24 # something arbitrary to test printing
 	bl uart_hexdigit
 
-	li %r22, 11
+	li %r22, 0
 .storeloop:
+	addi %r22, %r22, -1
+	mr %r3, %r22
+	bl uart_hexdigit
+	stbx %r22,%r22,%r30
+	lbzx %r3,%r22,%r30
+	bl uart_hexdigit
+
+	addi %r22, %r22, 1
 	mr %r3, %r22
 	bl uart_hexdigit
 	stbx %r22,%r22,%r30
@@ -59,17 +57,12 @@ dud_number:
 	bl uart_hexdigit
 
 	#addi %r22, %r22, 64 ; every second is blank
-	addi %r22, %r22, 128
-	cmpdi %cr0, %r22, 1000 # iter count
+	addi %r22, %r22, 16
+	cmpdi %cr0, %r22, 1000 # end
 	bng .storeloop
 
 	li %r8, 0x45  # value1 to store
 	stb %r8,0(%r30)
-
-	# # delay = 0x2dc6c00 = 48e6
-	# lis %r3, 0x2dc
-	# ori %r3, %r3, 0x6c00
-	# bl delay
 
 	lbz %r10,0(%r30)
 
@@ -107,30 +100,26 @@ uart_hexdigit:
 	# high nibble
 	rldicl %r4, %r3, 60, 60
 	cmpdi %cr0,%r4,0xa
-	blt .nothex1
+	blt 8
 	addi %r4,%r4, 'a'-'0'-0xa # a-f digit
-.nothex1:
 	addi %r4,%r4, 0x30
 	stbcix %r4,0,%r5
 
 	# low nibble
 	rldicl %r4, %r3, 0, 60
 	cmpdi %cr0,%r4,0xa
-	blt .nothex2
+	blt 8
 	addi %r4,%r4, 'a'-'0'-0xa # a-f digit
-.nothex2:
 	addi %r4,%r4, 0x30
 	stbcix %r4,0,%r5
 
 	li %r4, 0x2d # '-'
 	stbcix %r4,0,%r5
 
-	# ~10ms? delay
-	lis %r3, 0x0002
-.iter1:
-	cmpdi %cr0, %r3, 0
-	addi %r3, %r3, -1
-	bgt .iter1
+	# wait for TX empty
+	lbz %r3, 0x14(%r5)
+	andi. %r3, %r3, 0x20
+	beq -8
 
 	blr
 
