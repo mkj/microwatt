@@ -686,6 +686,13 @@ begin
         when 30 =>
             v.decode := decode_op_30_array(to_integer(unsigned(f_in.insn(4 downto 1))));
 
+        when 48 | 49 | 50 | 51 | 52 | 53 | 54 | 55 =>
+            if not HAS_FPU then
+                -- NOP out float load/stores
+                vi.override := '1';
+                vi.override_decode := nop_instr;
+            end if;
+
         when 56 =>
             -- lq, illegal if RA = RT
             if f_in.insn(25 downto 21) = f_in.insn(20 downto 16) then
