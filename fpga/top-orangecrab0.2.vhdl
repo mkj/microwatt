@@ -7,7 +7,7 @@ use work.wishbone_types.all;
 
 entity toplevel is
     generic (
-        MEMORY_SIZE        : integer  := 16384;
+        MEMORY_SIZE        : integer  := 0;
         RAM_INIT_FILE      : string   := "firmware.hex";
         RESET_LOW          : boolean  := true;
         CLK_INPUT          : positive := 100000000;
@@ -22,9 +22,9 @@ entity toplevel is
         SPI_FLASH_DEF_CKDV : natural := 1;
         SPI_FLASH_DEF_QUAD : boolean := true;
         LOG_LENGTH         : natural := 0;
-        UART_IS_16550      : boolean  := false;
-        UART_IS_VALENTYUSB : boolean  := true;
-        HAS_UART1          : boolean  := true;
+        UART_IS_16550      : boolean  := true;
+        HAS_UART1          : boolean  := false;
+        HAS_UARTUSB        : boolean  := true;
         USE_LITESDCARD     : boolean := false;
         ICACHE_NUM_LINES   : natural := 64;
         NGPIO              : natural := 0
@@ -213,8 +213,8 @@ begin
             SPI_FLASH_DEF_QUAD => SPI_FLASH_DEF_QUAD,
             LOG_LENGTH         => LOG_LENGTH,
             UART0_IS_16550     => UART_IS_16550,
-            UART0_IS_VALENTYUSB=> UART_IS_VALENTYUSB,
             HAS_UART1          => HAS_UART1,
+            HAS_UARTUSB        => HAS_UARTUSB,
             HAS_SD_CARD        => USE_LITESDCARD,
             ICACHE_NUM_LINES   => ICACHE_NUM_LINES,
             NGPIO              => NGPIO

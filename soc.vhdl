@@ -25,6 +25,7 @@ use work.wishbone_types.all;
 -- 0xc0005000: XICS ICS
 -- 0xc0006000: SPI Flash controller
 -- 0xc0007000: GPIO controller
+-- 0xc0008000: USB UART (valentyusb)
 -- 0xc8nnnnnn: External IO bus
 -- 0xf0000000: Flash "ROM" mapping
 -- 0xff000000: DRAM init code (if any) or flash ROM (**)
@@ -50,6 +51,7 @@ use work.wishbone_types.all;
 --   2  : UART1
 --   3  : SD card
 --   4  : GPIO
+--   5  : UARTUSB
 
 entity soc is
     generic (
@@ -73,8 +75,8 @@ entity soc is
         LOG_LENGTH         : natural := 512;
         HAS_LITEETH        : boolean := false;
 	UART0_IS_16550     : boolean := true;
-        UART0_IS_VALENTYUSB: boolean := false;
 	HAS_UART1          : boolean := false;
+        HAS_UARTUSB        : boolean := false;
         ICACHE_NUM_LINES   : natural := 64;
         ICACHE_NUM_WAYS    : natural := 2;
         ICACHE_TLB_SIZE    : natural := 64;
@@ -188,6 +190,11 @@ architecture behaviour of soc is
     signal uart1_dat8    : std_ulogic_vector(7 downto 0);
     signal uart1_irq     : std_ulogic;
 
+    -- UARTUSB signals:
+    signal wb_uartusb_in   : wb_io_master_out;
+    signal wb_uartusb_out  : wb_io_slave_out;
+    signal uartusb_irq     : std_ulogic;
+
     -- SPI Flash controller signals:
     signal wb_spiflash_in     : wb_io_master_out;
     signal wb_spiflash_out    : wb_io_slave_out;
@@ -249,6 +256,7 @@ architecture behaviour of soc is
                            SLAVE_IO_SPI_FLASH_REG,
                            SLAVE_IO_SPI_FLASH_MAP,
                            SLAVE_IO_GPIO,
+                           SLAVE_IO_UARTUSB,
                            SLAVE_IO_EXTERNAL,
                            SLAVE_IO_NONE);
     signal slave_io_dbg : slave_io_type;
@@ -309,12 +317,8 @@ architecture behaviour of soc is
         );
     end component;
 
-    constant UART0_IS_POTATO : boolean := not (UART0_IS_VALENTYUSB or UART0_IS_16550);
+    constant UART0_IS_POTATO : boolean := not UART0_IS_16550;
 begin
-
-    -- only one selected.
-    assert (UART0_IS_POTATO xor UART0_IS_16550 xor UART0_IS_VALENTYUSB)
-            and not (UART0_IS_POTATO and UART0_IS_16550 and UART0_IS_VALENTYUSB);
 
     resets: process(system_clk)
     begin
@@ -606,7 +610,7 @@ begin
     --
     slave_io_intercon: process(wb_sio_out, wb_syscon_out, wb_uart0_out, wb_uart1_out,
                                wb_ext_io_out, wb_xics_icp_out, wb_xics_ics_out,
-                               wb_spiflash_out)
+                               wb_spiflash_out, wb_uartusb_out)
 	variable slave_io : slave_io_type;
 
         variable match : std_ulogic_vector(31 downto 12);
@@ -636,6 +640,8 @@ begin
 	    slave_io := SLAVE_IO_SPI_FLASH_REG;
         elsif std_match(match, x"C0007") then
             slave_io := SLAVE_IO_GPIO;
+        elsif std_match(match, x"C0008") then
+            slave_io := SLAVE_IO_UARTUSB;
 	end if;
         slave_io_dbg <= slave_io;
 	wb_uart0_in <= wb_sio_out;
@@ -648,6 +654,12 @@ begin
         wb_spiflash_is_map <= '0';
         wb_gpio_in <= wb_sio_out;
         wb_gpio_in.cyc <= '0';
+
+        wb_uartusb_in <= wb_sio_out;
+        wb_uartusb_in.cyc <= '0';
+        -- valentyusb was built at base 0x0, it only needs 5 low bits
+        wb_uartusb_in.adr <= (others => '0');
+        wb_uartusb_in.adr(4 downto 0) <= wb_sio_out.adr(4 downto 0);
 
 	 -- Only give xics 8 bits of wb addr (for now...)
 	wb_xics_icp_in <= wb_sio_out;
@@ -720,6 +732,9 @@ begin
 	when SLAVE_IO_UART1 =>
 	    wb_uart1_in.cyc <= wb_sio_out.cyc;
 	    wb_sio_in <= wb_uart1_out;
+	when SLAVE_IO_UARTUSB =>
+	    wb_uartusb_in.cyc <= wb_sio_out.cyc;
+	    wb_sio_in <= wb_uartusb_out;
 	when SLAVE_IO_SPI_FLASH_MAP =>
             -- Clear top bits so they don't make their way to the
             -- fash chip.
@@ -753,9 +768,8 @@ begin
             HAS_LITEETH => HAS_LITEETH,
             HAS_SD_CARD => HAS_SD_CARD,
             UART0_IS_16550 => UART0_IS_16550,
-            -- TODO matt: pass through an IS_LITEUART flag for VALENTYUSB.
-            -- Requires extending syscon?
-            HAS_UART1 => HAS_UART1
+            HAS_UART1 => HAS_UART1,
+            HAS_UARTUSB => HAS_UARTUSB
 	)
 	port map(
 	    clk => system_clk,
@@ -793,6 +807,7 @@ begin
 		);
 
         wb_uart0_out.dat <= x"000000" & uart0_dat8;
+        wb_uart0_out.stall <= not wb_uart0_out.ack;
     end generate;
 
     uart0_16550 : if UART0_IS_16550 generate
@@ -829,9 +844,11 @@ begin
         end process;
 
         wb_uart0_out.dat <= x"000000" & uart0_dat8;
+        wb_uart0_out.stall <= not wb_uart0_out.ack;
     end generate;
 
-    uart0_valentyusb : if UART0_IS_VALENTYUSB generate
+
+    uart0_valentyusb : if HAS_UARTUSB generate
         component valentyusb port (
                 clk_clksys : in std_ulogic;
                 clk_clk48 : in std_ulogic;
@@ -866,14 +883,14 @@ begin
                 usb_pullup => usb_pullup,
                 -- TODO, output flag
                 usb_tx_en => open,
-                wishbone_adr => "0000000000000000" & wb_uart0_in.adr(13 downto 0),
-                wishbone_dat_r => wb_uart0_out.dat,
-                wishbone_dat_w => wb_uart0_in.dat,
-                wishbone_sel   => wb_uart0_in.sel,
-                wishbone_cyc => wb_uart0_in.cyc,
-                wishbone_stb => wb_uart0_in.stb,
-                wishbone_ack => wb_uart0_out.ack,
-                wishbone_we => wb_uart0_in.we,
+                wishbone_adr => "0000000000000000" & wb_uartusb_in.adr(13 downto 0),
+                wishbone_dat_r => wb_uartusb_out.dat,
+                wishbone_dat_w => wb_uartusb_in.dat,
+                wishbone_sel   => wb_uartusb_in.sel,
+                wishbone_cyc => wb_uartusb_in.cyc,
+                wishbone_stb => wb_uartusb_in.stb,
+                wishbone_ack => wb_uartusb_out.ack,
+                wishbone_we => wb_uartusb_in.we,
                 interrupt => irq_l,
                 -- XXX matt check this
                 wishbone_cti => "000",
@@ -882,16 +899,16 @@ begin
                 wishbone_err => open
                 );
 
+        wb_uartusb_out.stall <= not wb_uartusb_out.ack;
+
         -- Add a register on the irq out, helps timing
-        uart0_irq_latch: process(system_clk)
+        uartusb_irq_latch: process(system_clk)
         begin
             if rising_edge(system_clk) then
-                uart0_irq <= irq_l;
+                uartusb_irq <= irq_l;
             end if;
         end process;
     end generate;
-
-    wb_uart0_out.stall <= not wb_uart0_out.ack;
 
     --
     -- UART1
@@ -1019,6 +1036,7 @@ begin
         int_level_in(2) <= uart1_irq;
         int_level_in(3) <= ext_irq_sdcard;
         int_level_in(4) <= gpio_intr;
+        int_level_in(5) <= uartusb_irq;
     end process;
 
     -- BRAM Memory slave

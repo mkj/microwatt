@@ -233,7 +233,7 @@ int usb_puts(const char *str)
 
 void usb_console_init(void)
 {
-	uart_base = UART0_BASE;
+	uart_base = UARTUSB_BASE;
 	uart_init();
 }
 

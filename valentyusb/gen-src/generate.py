@@ -82,7 +82,7 @@ class BaseSoC(SoCCore):
 
         # prior to SocCore.__init__
         self.csr_map = {
-            "uart":     4, # 0x2000 for microwatt UART0
+            "uart":     0, # microwatt soc will remap addresses to 0
         }
 
         SoCCore.__init__(self, platform, sys_freq,
