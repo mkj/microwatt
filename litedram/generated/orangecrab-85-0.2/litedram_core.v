@@ -1770,14 +1770,14 @@ assign init_clk = crg_clkout1;
 assign crg_locked = (litedramecp5ddrphycrg_locked & (~crg_reset1));
 always @(*) begin
 	ddrphy_dm_o_data0 <= 8'd0;
-	ddrphy_dm_o_data0[0] <= ddrphy_dfi_p0_wrdata_mask[0];
-	ddrphy_dm_o_data0[1] <= ddrphy_dfi_p0_wrdata_mask[2];
-	ddrphy_dm_o_data0[2] <= ddrphy_dfi_p0_wrdata_mask[4];
-	ddrphy_dm_o_data0[3] <= ddrphy_dfi_p0_wrdata_mask[6];
-	ddrphy_dm_o_data0[4] <= ddrphy_dfi_p1_wrdata_mask[0];
-	ddrphy_dm_o_data0[5] <= ddrphy_dfi_p1_wrdata_mask[2];
-	ddrphy_dm_o_data0[6] <= ddrphy_dfi_p1_wrdata_mask[4];
-	ddrphy_dm_o_data0[7] <= ddrphy_dfi_p1_wrdata_mask[6];
+	ddrphy_dm_o_data0[0] <= ddrphy_dfi_p0_wrdata_mask[1];
+	ddrphy_dm_o_data0[1] <= ddrphy_dfi_p0_wrdata_mask[3];
+	ddrphy_dm_o_data0[2] <= ddrphy_dfi_p0_wrdata_mask[5];
+	ddrphy_dm_o_data0[3] <= ddrphy_dfi_p0_wrdata_mask[7];
+	ddrphy_dm_o_data0[4] <= ddrphy_dfi_p1_wrdata_mask[1];
+	ddrphy_dm_o_data0[5] <= ddrphy_dfi_p1_wrdata_mask[3];
+	ddrphy_dm_o_data0[6] <= ddrphy_dfi_p1_wrdata_mask[5];
+	ddrphy_dm_o_data0[7] <= ddrphy_dfi_p1_wrdata_mask[7];
 end
 always @(*) begin
 	ddrphy_dq_o_data0 <= 8'd0;
@@ -2011,14 +2011,14 @@ end
 assign ddrphy_dq_i_data7 = {ddrphy_bitslip7_o, ddrphy_dq_i_bitslip_o_d7};
 always @(*) begin
 	ddrphy_dm_o_data1 <= 8'd0;
-	ddrphy_dm_o_data1[0] <= ddrphy_dfi_p0_wrdata_mask[1];
-	ddrphy_dm_o_data1[1] <= ddrphy_dfi_p0_wrdata_mask[3];
-	ddrphy_dm_o_data1[2] <= ddrphy_dfi_p0_wrdata_mask[5];
-	ddrphy_dm_o_data1[3] <= ddrphy_dfi_p0_wrdata_mask[7];
-	ddrphy_dm_o_data1[4] <= ddrphy_dfi_p1_wrdata_mask[1];
-	ddrphy_dm_o_data1[5] <= ddrphy_dfi_p1_wrdata_mask[3];
-	ddrphy_dm_o_data1[6] <= ddrphy_dfi_p1_wrdata_mask[5];
-	ddrphy_dm_o_data1[7] <= ddrphy_dfi_p1_wrdata_mask[7];
+	ddrphy_dm_o_data1[0] <= ddrphy_dfi_p0_wrdata_mask[0];
+	ddrphy_dm_o_data1[1] <= ddrphy_dfi_p0_wrdata_mask[2];
+	ddrphy_dm_o_data1[2] <= ddrphy_dfi_p0_wrdata_mask[4];
+	ddrphy_dm_o_data1[3] <= ddrphy_dfi_p0_wrdata_mask[6];
+	ddrphy_dm_o_data1[4] <= ddrphy_dfi_p1_wrdata_mask[0];
+	ddrphy_dm_o_data1[5] <= ddrphy_dfi_p1_wrdata_mask[2];
+	ddrphy_dm_o_data1[6] <= ddrphy_dfi_p1_wrdata_mask[4];
+	ddrphy_dm_o_data1[7] <= ddrphy_dfi_p1_wrdata_mask[6];
 end
 always @(*) begin
 	ddrphy_dq_o_data8 <= 8'd0;
