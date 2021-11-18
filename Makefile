@@ -196,7 +196,8 @@ toplevel=fpga/top-orangecrab0.2.vhdl
 litedram_target=orangecrab-85-0.2
 random_files=fpga/fpga-random.vhdl
 SYNTH_ECP5_FLAGS=-retime -abc2
-soc_extra_v += valentyusb/generated/orangecrab-85-0.2/gateware/valentyusb.v
+soc_extra_v += valentyusb/generated/orangecrab-85-0.2/gateware/valentyusb.v \
+			   litesdcard/generated/lattice/litesdcard_core.v
 endif
 
 # ECP5-EVN
