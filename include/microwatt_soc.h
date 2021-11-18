@@ -11,7 +11,7 @@
 
 #define SYSCON_BASE	0xc0000000  /* System control regs */
 #define UART0_BASE      0xc0002000  /* UART */
-#define UART_BASE       UART_BASE
+#define UART_BASE       UART0_BASE
 #define UART1_BASE      0xc0003000  /* UART */
 #define XICS_ICP_BASE   0xc0004000  /* Interrupt controller */
 #define XICS_ICS_BASE   0xc0005000  /* Interrupt controller */

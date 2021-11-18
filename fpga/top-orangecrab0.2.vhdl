@@ -226,8 +226,8 @@ begin
             rst               => soc_rst,
 
             -- UART signals
-            uart1_txd         => uart_main_tx,
-            uart1_rxd         => uart_main_rx,
+            uart0_txd         => uart_main_tx,
+            uart0_rxd         => uart_main_rx,
 
             usb_d_p           => usb_d_p,
             usb_d_n           => usb_d_n,
