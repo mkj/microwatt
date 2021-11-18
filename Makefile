@@ -194,8 +194,10 @@ OPENOCD_JTAG_CONFIG=openocd/olimex-arm-usb-tiny-h.cfg
 OPENOCD_DEVICE_CONFIG=openocd/LFE5U-85F.cfg
 toplevel=fpga/top-orangecrab0.2.vhdl
 litedram_target=orangecrab-85-0.2
-random_files=fpga/fpga-random.vhdl
-SYNTH_ECP5_FLAGS=-retime -abc2
+# disable random for the time being so we can try abc9 which doesn't like loops
+#random_files=fpga/fpga-random.vhdl
+random_files=nonrandom.vhdl
+SYNTH_ECP5_FLAGS=-abc2 -abc9
 soc_extra_v += valentyusb/generated/orangecrab-85-0.2/gateware/valentyusb.v \
 			   litesdcard/generated/lattice/litesdcard_core.v
 endif
