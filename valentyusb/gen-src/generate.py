@@ -15,9 +15,12 @@ import argparse
 import os
 import yaml
 
+from math import log2
+
 #from migen import *
 from migen import Module, Signal, Instance, ClockDomain, If
 from migen.genlib.resetsync import AsyncResetSynchronizer
+from migen.genlib.misc import WaitTimer
 from migen.fhdl.specials import TSTriple
 from migen.fhdl.bitcontainer import bits_for
 from migen.fhdl.structure import ClockSignal, ResetSignal, Replicate, Cat
@@ -27,7 +30,7 @@ from litex.build.lattice import LatticePlatform
 from litex.build.generic_platform import Pins, IOStandard, Misc, Subsignal
 from litex.soc.integration.soc_core import SoCCore
 from litex.soc.integration.builder import Builder
-from litex.soc.interconnect import wishbone
+from litex.soc.interconnect import wishbone, stream
 from litex.soc.interconnect.csr import AutoCSR, CSRStatus, CSRStorage
 
 from valentyusb import usbcore
@@ -103,6 +106,9 @@ class BaseSoC(SoCCore):
             self.submodules.usb = epfifo.PerEndpointFifoInterface(usb_iobuf, debug=True)
         elif usb_variant == 'cdc_eptri':
             self.submodules.uart = cdc_eptri.CDCUsb(usb_iobuf, debug=True)
+            # avoid spinning waiting for UART tx when there is no
+            # USB host program attached to the tty
+            add_auto_tx_flush(self.uart, sys_freq)
         elif usb_variant == 'dummy':
             self.submodules.usb = dummyusb.DummyUsb(usb_iobuf, debug=True)
         else:
@@ -119,6 +125,29 @@ class BaseSoC(SoCCore):
         self.add_wb_master(wb_ctrl)
         platform.add_extension(wb_ctrl.get_ios("wb_ctrl"))
         self.comb += wb_ctrl.connect_to_pads(self.platform.request("wishbone"), mode="slave")
+
+# from litex uart.py
+def add_auto_tx_flush(uart, sys_clk_freq, timeout=1e-2, interval=2):
+    self = uart
+    # Add automatic TX flush when ready is not active for a long time (timeout), this can prevent
+    # stalling the UART (and thus CPU) when the PHY is not operational at startup.
+
+    flush_ep    = stream.Endpoint([("data", 8)])
+    flush_count = Signal(int(log2(interval)))
+
+    # Insert Flush Endpoint between TX FIFO and Source.
+    self.comb += self.tx_fifo.source.connect(flush_ep)
+    self.comb += flush_ep.connect(self.source)
+
+    # Flush TX FIFO when Source.ready is inactive for timeout (with interval cycles between
+    # each ready).
+    self.submodules.timer = timer = WaitTimer(int(timeout*sys_clk_freq))
+    self.comb += timer.wait.eq(~self.source.ready)
+    self.sync += flush_count.eq(flush_count + 1)
+    self.comb += If(timer.done, flush_ep.ready.eq(flush_count == 0))
+    #self.sync += If(flush_ep.valid & flush_ep.ready, Display("%c", flush_ep.data))
+
+
 
 def add_fsm_state_names():
     """Hack the FSM module to add state names to the output"""

@@ -9,7 +9,7 @@
 // Filename   : valentyusb.v
 // Device     : LFE5U-85F-8MG285C
 // LiteX sha1 : --------
-// Date       : 2021-11-18 16:44:59
+// Date       : 2021-11-24 14:14:03
 //------------------------------------------------------------------------------
 
 
@@ -615,11 +615,11 @@ wire sink_sink_ready;
 wire sink_sink_first;
 wire sink_sink_last;
 wire [7:0] sink_sink_payload_data;
-wire source_source_valid;
+reg  source_source_valid = 1'd0;
 wire source_source_ready;
-wire source_source_first;
-wire source_source_last;
-wire [7:0] source_source_payload_data;
+reg  source_source_first = 1'd0;
+reg  source_source_last = 1'd0;
+reg  [7:0] source_source_payload_data = 8'd0;
 wire rts;
 wire dtr;
 wire async_rst;
@@ -634,7 +634,7 @@ reg  asyncfifo0_sink_first = 1'd0;
 reg  asyncfifo0_sink_last = 1'd0;
 wire [7:0] asyncfifo0_sink_payload_data;
 wire asyncfifo0_source_valid;
-wire asyncfifo0_source_ready;
+reg  asyncfifo0_source_ready = 1'd0;
 wire asyncfifo0_source_first;
 wire asyncfifo0_source_last;
 wire [7:0] asyncfifo0_source_payload_data;
@@ -708,6 +708,15 @@ wire asyncfifo1_fifo_in_last;
 wire [7:0] asyncfifo1_fifo_out_payload_data;
 wire asyncfifo1_fifo_out_first;
 wire asyncfifo1_fifo_out_last;
+wire flush_ep_valid;
+reg  flush_ep_ready = 1'd0;
+wire flush_ep_first;
+wire flush_ep_last;
+wire [7:0] flush_ep_payload_data;
+reg  flush_count = 1'd0;
+wire wait_1;
+wire done;
+reg  [18:0] count = 19'd480000;
 wire [29:0] wb_ctrl_adr;
 wire [31:0] wb_ctrl_dat_w;
 wire [31:0] wb_ctrl_dat_r;
@@ -943,11 +952,6 @@ assign cdcusbphy_configure_set = o;
 assign asyncfifo0_sink_valid = rxtx_re;
 assign asyncfifo0_sink_payload_data = rxtx_r;
 assign txfull_status = (~asyncfifo0_sink_ready);
-assign source_source_valid = asyncfifo0_source_valid;
-assign asyncfifo0_source_ready = source_source_ready;
-assign source_source_first = asyncfifo0_source_first;
-assign source_source_last = asyncfifo0_source_last;
-assign source_source_payload_data = asyncfifo0_source_payload_data;
 assign tx_trigger = (~asyncfifo0_sink_ready);
 assign asyncfifo1_sink_valid = sink_sink_valid;
 assign sink_sink_ready = asyncfifo1_sink_ready;
@@ -958,6 +962,43 @@ assign rxempty_status = (~asyncfifo1_source_valid);
 assign rxtx_w = asyncfifo1_source_payload_data;
 assign asyncfifo1_source_ready = (rx_clear | (1'd0 & rxtx_we));
 assign rx_trigger = (~asyncfifo1_source_valid);
+assign flush_ep_valid = asyncfifo0_source_valid;
+always @(*) begin
+	asyncfifo0_source_ready <= 1'd0;
+	asyncfifo0_source_ready <= source_source_ready;
+	asyncfifo0_source_ready <= flush_ep_ready;
+end
+assign flush_ep_first = asyncfifo0_source_first;
+assign flush_ep_last = asyncfifo0_source_last;
+assign flush_ep_payload_data = asyncfifo0_source_payload_data;
+always @(*) begin
+	source_source_valid <= 1'd0;
+	source_source_valid <= asyncfifo0_source_valid;
+	source_source_valid <= flush_ep_valid;
+end
+always @(*) begin
+	source_source_first <= 1'd0;
+	source_source_first <= asyncfifo0_source_first;
+	source_source_first <= flush_ep_first;
+end
+always @(*) begin
+	source_source_last <= 1'd0;
+	source_source_last <= asyncfifo0_source_last;
+	source_source_last <= flush_ep_last;
+end
+always @(*) begin
+	source_source_payload_data <= 8'd0;
+	source_source_payload_data <= asyncfifo0_source_payload_data;
+	source_source_payload_data <= flush_ep_payload_data;
+end
+assign wait_1 = (~source_source_ready);
+always @(*) begin
+	flush_ep_ready <= 1'd0;
+	flush_ep_ready <= source_source_ready;
+	if (done) begin
+		flush_ep_ready <= (flush_count == 1'd0);
+	end
+end
 assign cdcusbphy_csrtransform = (~usb_12_rst);
 assign cdcusbphy_csrtransform_pullup_out_re = 1'd1;
 assign cdcusbphy_configured = (cdcusbphy_configured_delay == 1'd0);
@@ -1170,11 +1211,11 @@ assign cdcusbphy_usb_core_tx_o_usbp = cdcusbphy_usb_core_tx_nrzi_o_usbp;
 assign cdcusbphy_usb_core_tx_o_usbn = cdcusbphy_usb_core_tx_nrzi_o_usbn;
 assign cdcusbphy_usb_core_tx_o_oe = cdcusbphy_usb_core_tx_nrzi_o_oe;
 always @(*) begin
-	subfragments_fsm_next_state <= 2'd0;
 	cdcusbphy_usb_core_tx_sync_pulse_csrtransform_txpipeline_next_value0 <= 8'd0;
 	cdcusbphy_usb_core_tx_sync_pulse_csrtransform_txpipeline_next_value_ce0 <= 1'd0;
 	cdcusbphy_usb_core_tx_state_gray_csrtransform_txpipeline_next_value1 <= 2'd0;
 	cdcusbphy_usb_core_tx_state_gray_csrtransform_txpipeline_next_value_ce1 <= 1'd0;
+	subfragments_fsm_next_state <= 2'd0;
 	subfragments_fsm_next_state <= subfragments_fsm_state;
 	case (subfragments_fsm_state)
 		1'd1: begin
@@ -1228,8 +1269,8 @@ assign cdcusbphy_usb_core_tx_shifter_o_data = cdcusbphy_usb_core_tx_shifter_shif
 assign cdcusbphy_usb_core_tx_bitstuff_o_stall = cdcusbphy_usb_core_tx_bitstuff_stuff_bit;
 always @(*) begin
 	cdcusbphy_usb_core_tx_bitstuff_o_will_stall <= 1'd0;
-	subfragments_resetinserter_next_state <= 3'd0;
 	cdcusbphy_usb_core_tx_bitstuff_stuff_bit <= 1'd0;
+	subfragments_resetinserter_next_state <= 3'd0;
 	subfragments_resetinserter_next_state <= subfragments_resetinserter_state;
 	case (subfragments_resetinserter_state)
 		1'd1: begin
@@ -1282,9 +1323,9 @@ always @(*) begin
 	endcase
 end
 always @(*) begin
+	subfragments_txnrziencoder_next_state <= 3'd0;
 	cdcusbphy_usb_core_tx_nrzi_usbp <= 1'd0;
 	cdcusbphy_usb_core_tx_nrzi_usbn <= 1'd0;
-	subfragments_txnrziencoder_next_state <= 3'd0;
 	cdcusbphy_usb_core_tx_nrzi_oe0 <= 1'd0;
 	subfragments_txnrziencoder_next_state <= subfragments_txnrziencoder_state;
 	case (subfragments_txnrziencoder_state)
@@ -1365,16 +1406,16 @@ always @(*) begin
 	end
 end
 always @(*) begin
-	cdcusbphy_usb_core_txstate_pid_csrtransform_txpacketsend_next_value_ce1 <= 1'd0;
 	cdcusbphy_usb_core_txstate_is_ongoing1 <= 1'd0;
-	cdcusbphy_usb_core_txstate_is_ongoing0 <= 1'd0;
 	cdcusbphy_usb_core_tx_i_data_payload <= 8'd0;
 	cdcusbphy_usb_core_txstate_o_pkt_end <= 1'd0;
 	subfragments_txpacketsend_next_state <= 4'd0;
 	cdcusbphy_usb_core_tx_i_oe_csrtransform_txpacketsend_next_value0 <= 1'd0;
-	cdcusbphy_usb_core_txstate_o_data_ack <= 1'd0;
 	cdcusbphy_usb_core_tx_i_oe_csrtransform_txpacketsend_next_value_ce0 <= 1'd0;
+	cdcusbphy_usb_core_txstate_o_data_ack <= 1'd0;
 	cdcusbphy_usb_core_txstate_pid_csrtransform_txpacketsend_next_value1 <= 4'd0;
+	cdcusbphy_usb_core_txstate_pid_csrtransform_txpacketsend_next_value_ce1 <= 1'd0;
+	cdcusbphy_usb_core_txstate_is_ongoing0 <= 1'd0;
 	subfragments_txpacketsend_next_state <= subfragments_txpacketsend_state;
 	case (subfragments_txpacketsend_state)
 		1'd1: begin
@@ -1506,9 +1547,9 @@ assign cdcusbphy_usb_core_rx_dpair = {cdcusbphy_usb_core_rx_i_usbp, cdcusbphy_us
 always @(*) begin
 	cdcusbphy_usb_core_rx_line_state_dj0 <= 1'd0;
 	cdcusbphy_usb_core_rx_line_state_dk0 <= 1'd0;
+	subfragments_rxpipeline_next_state <= 3'd0;
 	cdcusbphy_usb_core_rx_line_state_se00 <= 1'd0;
 	cdcusbphy_usb_core_rx_line_state_se10 <= 1'd0;
-	subfragments_rxpipeline_next_state <= 3'd0;
 	cdcusbphy_usb_core_rx_line_state_dt <= 1'd0;
 	subfragments_rxpipeline_next_state <= subfragments_rxpipeline_state;
 	case (subfragments_rxpipeline_state)
@@ -1559,10 +1600,10 @@ assign cdcusbphy_usb_core_rx_detect_o_pkt_start = cdcusbphy_usb_core_rx_detect_p
 assign cdcusbphy_usb_core_rx_detect_o_pkt_active = cdcusbphy_usb_core_rx_detect_pkt_active;
 assign cdcusbphy_usb_core_rx_detect_o_pkt_end = cdcusbphy_usb_core_rx_detect_pkt_end;
 always @(*) begin
-	subfragments_rxpipeline_rxpacketdetect_next_state <= 3'd0;
 	cdcusbphy_usb_core_rx_detect_pkt_start <= 1'd0;
 	cdcusbphy_usb_core_rx_detect_pkt_active <= 1'd0;
 	cdcusbphy_usb_core_rx_detect_pkt_end <= 1'd0;
+	subfragments_rxpipeline_rxpacketdetect_next_state <= 3'd0;
 	subfragments_rxpipeline_rxpacketdetect_next_state <= subfragments_rxpipeline_rxpacketdetect_state;
 	case (subfragments_rxpipeline_rxpacketdetect_state)
 		1'd1: begin
@@ -1755,18 +1796,18 @@ always @(*) begin
 end
 assign cdcusbphy_usb_core_rx_flagsFifo_graycounter1_q_next = (cdcusbphy_usb_core_rx_flagsFifo_graycounter1_q_next_binary ^ cdcusbphy_usb_core_rx_flagsFifo_graycounter1_q_next_binary[1]);
 always @(*) begin
-	cdcusbphy_usb_core_o_pid_csrtransform_packetheaderdecode_next_value_ce0 <= 1'd0;
 	subfragments_packetheaderdecode_next_value <= 7'd0;
 	subfragments_packetheaderdecode_next_value_ce <= 1'd0;
 	cdcusbphy_usb_core_endp4_csrtransform_packetheaderdecode_next_value1 <= 1'd0;
 	cdcusbphy_usb_core_endp4_csrtransform_packetheaderdecode_next_value_ce1 <= 1'd0;
 	cdcusbphy_usb_core_o_endp_csrtransform_packetheaderdecode_next_value2 <= 4'd0;
-	cdcusbphy_usb_core_o_decoded <= 1'd0;
 	cdcusbphy_usb_core_o_endp_csrtransform_packetheaderdecode_next_value_ce2 <= 1'd0;
 	cdcusbphy_usb_core_crc5_csrtransform_packetheaderdecode_next_value3 <= 5'd0;
+	cdcusbphy_usb_core_o_decoded <= 1'd0;
 	cdcusbphy_usb_core_crc5_csrtransform_packetheaderdecode_next_value_ce3 <= 1'd0;
 	subfragments_packetheaderdecode_next_state <= 3'd0;
 	cdcusbphy_usb_core_o_pid_csrtransform_packetheaderdecode_next_value0 <= 4'd0;
+	cdcusbphy_usb_core_o_pid_csrtransform_packetheaderdecode_next_value_ce0 <= 1'd0;
 	subfragments_packetheaderdecode_next_state <= subfragments_packetheaderdecode_state;
 	case (subfragments_packetheaderdecode_state)
 		1'd1: begin
@@ -1818,26 +1859,26 @@ end
 assign cdcusbphy_usb_core_is_el0 = ((~(subfragments_clockdomainsrenamer_state0 == 3'd6)) & (subfragments_clockdomainsrenamer_next_state0 == 3'd6));
 assign cdcusbphy_usb_core_is_el1 = ((~(subfragments_clockdomainsrenamer_state0 == 4'd8)) & (subfragments_clockdomainsrenamer_next_state0 == 4'd8));
 always @(*) begin
+	cdcusbphy_usb_core_response_pid_csrtransform_t_next_value <= 4'd0;
+	cdcusbphy_usb_core_response_pid_csrtransform_t_next_value_ce <= 1'd0;
 	cdcusbphy_usb_core_data_recv_put <= 1'd0;
-	subfragments_clockdomainsrenamer_next_state0 <= 4'd0;
 	cdcusbphy_usb_core_data_send_get <= 1'd0;
 	cdcusbphy_usb_core_txstate_i_pkt_start <= 1'd0;
 	cdcusbphy_usb_core_txstate_i_pid <= 4'd0;
-	cdcusbphy_usb_core_tok_csrtransform_f_next_value0 <= 4'd0;
-	cdcusbphy_usb_core_tok_csrtransform_f_next_value_ce0 <= 1'd0;
 	cdcusbphy_usb_core_idle <= 1'd0;
-	cdcusbphy_usb_core_endp_csrtransform_f_next_value1 <= 4'd0;
 	cdcusbphy_usb_core_start <= 1'd0;
-	cdcusbphy_usb_core_endp_csrtransform_f_next_value_ce1 <= 1'd0;
 	cdcusbphy_usb_core_poll <= 1'd0;
+	subfragments_clockdomainsrenamer_next_state0 <= 4'd0;
 	cdcusbphy_usb_core_setup <= 1'd0;
-	cdcusbphy_usb_core_response_pid_csrtransform_t_next_value <= 4'd0;
 	cdcusbphy_usb_core_commit <= 1'd0;
-	cdcusbphy_usb_core_response_pid_csrtransform_t_next_value_ce <= 1'd0;
 	cdcusbphy_usb_core_retry <= 1'd0;
 	cdcusbphy_usb_core_abort <= 1'd0;
 	cdcusbphy_usb_core_data_end <= 1'd0;
 	cdcusbphy_usb_core_error <= 1'd0;
+	cdcusbphy_usb_core_tok_csrtransform_f_next_value0 <= 4'd0;
+	cdcusbphy_usb_core_tok_csrtransform_f_next_value_ce0 <= 1'd0;
+	cdcusbphy_usb_core_endp_csrtransform_f_next_value1 <= 4'd0;
+	cdcusbphy_usb_core_endp_csrtransform_f_next_value_ce1 <= 1'd0;
 	if (cdcusbphy_usb_core_is_el0) begin
 		if (cdcusbphy_usb_core_dtb) begin
 			cdcusbphy_usb_core_txstate_i_pid <= 4'd11;
@@ -2014,6 +2055,7 @@ always @(*) begin
 	endcase
 end
 always @(*) begin
+	cdcusbphy_debug_bridge_transfer_active <= 1'd0;
 	cdcusbphy_debug_bridge_sink_valid <= 1'd0;
 	cdcusbphy_debug_bridge_send_ack <= 1'd0;
 	cdcusbphy_debug_bridge_n_debug_in_progress <= 1'd1;
@@ -2023,7 +2065,6 @@ always @(*) begin
 	cdcusbphy_debug_bridge_rx_data_ce <= 1'd0;
 	cdcusbphy_debug_bridge_cmd_ce <= 1'd0;
 	cdcusbphy_debug_bridge_send_to_wishbone <= 1'd0;
-	cdcusbphy_debug_bridge_transfer_active <= 1'd0;
 	subfragments_usbwishbonebridge_next_state <= 4'd0;
 	subfragments_usbwishbonebridge_next_state <= subfragments_usbwishbonebridge_state;
 	case (subfragments_usbwishbonebridge_state)
@@ -2304,12 +2345,12 @@ assign cdcusbphy_ev_irq = ((cdcusbphy_setuphandler_irq | cdcusbphy_inhandler_irq
 always @(*) begin
 	cdcusbphy_setuphandler_data_recv_put <= 1'd0;
 	cdcusbphy_inhandler_dtb_reset <= 1'd0;
-	cdcusbphy_usb_core_data_send_have <= 1'd0;
 	subfragments_clockdomainsrenamer_next_state1 <= 3'd0;
-	cdcusbphy_usb_core_data_send_payload <= 8'd0;
 	cdcusbphy_usb_core_addr_csrtransform_next_value <= 7'd0;
-	cdcusbphy_inhandler_data_out_advance <= 1'd0;
+	cdcusbphy_usb_core_data_send_have <= 1'd0;
 	cdcusbphy_usb_core_addr_csrtransform_next_value_ce <= 1'd0;
+	cdcusbphy_usb_core_data_send_payload <= 8'd0;
+	cdcusbphy_inhandler_data_out_advance <= 1'd0;
 	cdcusbphy_outhandler_data_recv_put <= 1'd0;
 	cdcusbphy_usb_core_arm <= 1'd0;
 	cdcusbphy_outhandler_data_recv_payload <= 8'd0;
@@ -2404,50 +2445,50 @@ always @(*) begin
 end
 always @(*) begin
 	cdcusbphy_sink_payload_data <= 8'd0;
+	cdcusbphy_re_d2_fsm_t_next_value_ce3 <= 1'd0;
 	cdcusbphy_source_ready <= 1'd0;
+	cdcusbphy_usbPacket_fsm_cases_next_value0 <= 32'd0;
+	cdcusbphy_usbPacket_fsm_cases_next_value_ce0 <= 1'd0;
+	cdcusbphy_wLength_fsm_cases_next_value1 <= 8'd0;
+	cdcusbphy_wLength_fsm_cases_next_value_ce1 <= 1'd0;
 	cdcusbphy_new_address_fsm_t_next_value4 <= 7'd0;
+	cdcusbphy_setuphandler_data_we <= 1'd0;
 	cdcusbphy_new_address_fsm_t_next_value_ce4 <= 1'd0;
 	cdcusbphy_rts_fsm_t_next_value5 <= 1'd0;
 	cdcusbphy_rts_fsm_t_next_value_ce5 <= 1'd0;
 	cdcusbphy_dtr_fsm_t_next_value6 <= 1'd0;
 	cdcusbphy_dtr_fsm_t_next_value_ce6 <= 1'd0;
 	cdcusbphy_bytes_remaining_fsm_f_next_value0 <= 6'd0;
-	cdcusbphy_bytes_remaining_fsm_f_next_value_ce0 <= 1'd0;
-	cdcusbphy_bytes_addr_fsm_f_next_value1 <= 9'd0;
-	cdcusbphy_setuphandler_data_we <= 1'd0;
-	cdcusbphy_bytes_addr_fsm_f_next_value_ce1 <= 1'd0;
-	subfragments_next_state <= 3'd0;
-	cdcusbphy_setup_index_fsm_next_value0 <= 4'd0;
-	cdcusbphy_setup_index_fsm_next_value_ce0 <= 1'd0;
 	cdcusbphy_outhandler_pending_re <= 1'd0;
+	cdcusbphy_bytes_remaining_fsm_f_next_value_ce0 <= 1'd0;
 	cdcusbphy_outhandler_pending_r <= 1'd0;
 	cdcusbphy_csrtransform_address_re <= 1'd0;
-	cdcusbphy_inhandler_pending_r <= 1'd0;
+	cdcusbphy_bytes_addr_fsm_f_next_value1 <= 9'd0;
 	cdcusbphy_csrtransform_address_addr0 <= 7'd0;
+	cdcusbphy_bytes_addr_fsm_f_next_value_ce1 <= 1'd0;
+	cdcusbphy_inhandler_pending_r <= 1'd0;
 	cdcusbphy_inhandler_pending_re <= 1'd0;
-	cdcusbphy_delayed_re_fsm_next_value1 <= 1'd0;
-	cdcusbphy_delayed_re_fsm_next_value_ce1 <= 1'd0;
+	subfragments_next_state <= 3'd0;
 	cdcusbphy_csrtransform_in_data_re <= 1'd0;
 	cdcusbphy_csrtransform_in_data_data0 <= 8'd0;
-	cdcusbphy_data_d1_fsm_t_next_value0 <= 8'd0;
+	cdcusbphy_setup_index_fsm_next_value0 <= 4'd0;
 	cdcusbphy_csrtransform_in_ctrl_re <= 1'd0;
-	cdcusbphy_data_d1_fsm_t_next_value_ce0 <= 1'd0;
+	cdcusbphy_setup_index_fsm_next_value_ce0 <= 1'd0;
 	cdcusbphy_csrtransform_in_ctrl_epno0 <= 4'd0;
+	cdcusbphy_delayed_re_fsm_next_value1 <= 1'd0;
+	cdcusbphy_delayed_re_fsm_next_value_ce1 <= 1'd0;
+	cdcusbphy_csrtransform_out_ctrl_re <= 1'd0;
+	cdcusbphy_csrtransform_out_ctrl_epno0 <= 4'd0;
+	cdcusbphy_csrtransform_out_ctrl_enable0 <= 1'd0;
+	cdcusbphy_data_d1_fsm_t_next_value0 <= 8'd0;
+	cdcusbphy_data_d1_fsm_t_next_value_ce0 <= 1'd0;
 	cdcusbphy_data_d2_fsm_t_next_value1 <= 8'd0;
+	cdcusbphy_outhandler_data_we <= 1'd0;
 	cdcusbphy_data_d2_fsm_t_next_value_ce1 <= 1'd0;
+	cdcusbphy_sink_valid <= 1'd0;
 	cdcusbphy_re_d1_fsm_t_next_value2 <= 1'd0;
 	cdcusbphy_re_d1_fsm_t_next_value_ce2 <= 1'd0;
 	cdcusbphy_re_d2_fsm_t_next_value3 <= 1'd0;
-	cdcusbphy_csrtransform_out_ctrl_re <= 1'd0;
-	cdcusbphy_re_d2_fsm_t_next_value_ce3 <= 1'd0;
-	cdcusbphy_csrtransform_out_ctrl_epno0 <= 4'd0;
-	cdcusbphy_csrtransform_out_ctrl_enable0 <= 1'd0;
-	cdcusbphy_usbPacket_fsm_cases_next_value0 <= 32'd0;
-	cdcusbphy_outhandler_data_we <= 1'd0;
-	cdcusbphy_usbPacket_fsm_cases_next_value_ce0 <= 1'd0;
-	cdcusbphy_sink_valid <= 1'd0;
-	cdcusbphy_wLength_fsm_cases_next_value1 <= 8'd0;
-	cdcusbphy_wLength_fsm_cases_next_value_ce1 <= 1'd0;
 	subfragments_next_state <= subfragments_state;
 	case (subfragments_state)
 		1'd1: begin
@@ -2732,13 +2773,14 @@ always @(*) begin
 	end
 end
 assign asyncfifo1_graycounter3_q_next = (asyncfifo1_graycounter3_q_next_binary ^ asyncfifo1_graycounter3_q_next_binary[2:1]);
+assign done = (count == 1'd0);
 always @(*) begin
-	basesoc_basesoc_dat_w <= 32'd0;
-	basesoc_basesoc_wishbone_ack <= 1'd0;
 	basesoc_next_state <= 1'd0;
 	basesoc_basesoc_wishbone_dat_r <= 32'd0;
+	basesoc_basesoc_dat_w <= 32'd0;
 	basesoc_basesoc_adr <= 14'd0;
 	basesoc_basesoc_we <= 1'd0;
+	basesoc_basesoc_wishbone_ack <= 1'd0;
 	basesoc_next_state <= basesoc_state;
 	case (basesoc_state)
 		1'd1: begin
@@ -2770,8 +2812,8 @@ assign wb_ctrl_err = basesoc_basesoc_wishbone_err;
 assign basesoc_csrbank0_sel = (basesoc_interface0_bank_bus_adr[13:9] == 1'd1);
 assign basesoc_csrbank0_reset0_r = basesoc_interface0_bank_bus_dat_w[1:0];
 always @(*) begin
-	basesoc_csrbank0_reset0_re <= 1'd0;
 	basesoc_csrbank0_reset0_we <= 1'd0;
+	basesoc_csrbank0_reset0_re <= 1'd0;
 	if ((basesoc_csrbank0_sel & (basesoc_interface0_bank_bus_adr[8:0] == 1'd0))) begin
 		basesoc_csrbank0_reset0_re <= basesoc_interface0_bank_bus_we;
 		basesoc_csrbank0_reset0_we <= (~basesoc_interface0_bank_bus_we);
@@ -2779,8 +2821,8 @@ always @(*) begin
 end
 assign basesoc_csrbank0_scratch0_r = basesoc_interface0_bank_bus_dat_w[31:0];
 always @(*) begin
-	basesoc_csrbank0_scratch0_we <= 1'd0;
 	basesoc_csrbank0_scratch0_re <= 1'd0;
+	basesoc_csrbank0_scratch0_we <= 1'd0;
 	if ((basesoc_csrbank0_sel & (basesoc_interface0_bank_bus_adr[8:0] == 1'd1))) begin
 		basesoc_csrbank0_scratch0_re <= basesoc_interface0_bank_bus_we;
 		basesoc_csrbank0_scratch0_we <= (~basesoc_interface0_bank_bus_we);
@@ -2788,8 +2830,8 @@ always @(*) begin
 end
 assign basesoc_csrbank0_bus_errors_r = basesoc_interface0_bank_bus_dat_w[31:0];
 always @(*) begin
-	basesoc_csrbank0_bus_errors_we <= 1'd0;
 	basesoc_csrbank0_bus_errors_re <= 1'd0;
+	basesoc_csrbank0_bus_errors_we <= 1'd0;
 	if ((basesoc_csrbank0_sel & (basesoc_interface0_bank_bus_adr[8:0] == 2'd2))) begin
 		basesoc_csrbank0_bus_errors_re <= basesoc_interface0_bank_bus_we;
 		basesoc_csrbank0_bus_errors_we <= (~basesoc_interface0_bank_bus_we);
@@ -2818,8 +2860,8 @@ always @(*) begin
 end
 assign basesoc_csrbank1_txfull_r = basesoc_interface1_bank_bus_dat_w[0];
 always @(*) begin
-	basesoc_csrbank1_txfull_we <= 1'd0;
 	basesoc_csrbank1_txfull_re <= 1'd0;
+	basesoc_csrbank1_txfull_we <= 1'd0;
 	if ((basesoc_csrbank1_sel & (basesoc_interface1_bank_bus_adr[8:0] == 1'd1))) begin
 		basesoc_csrbank1_txfull_re <= basesoc_interface1_bank_bus_we;
 		basesoc_csrbank1_txfull_we <= (~basesoc_interface1_bank_bus_we);
@@ -2827,8 +2869,8 @@ always @(*) begin
 end
 assign basesoc_csrbank1_rxempty_r = basesoc_interface1_bank_bus_dat_w[0];
 always @(*) begin
-	basesoc_csrbank1_rxempty_we <= 1'd0;
 	basesoc_csrbank1_rxempty_re <= 1'd0;
+	basesoc_csrbank1_rxempty_we <= 1'd0;
 	if ((basesoc_csrbank1_sel & (basesoc_interface1_bank_bus_adr[8:0] == 2'd2))) begin
 		basesoc_csrbank1_rxempty_re <= basesoc_interface1_bank_bus_we;
 		basesoc_csrbank1_rxempty_we <= (~basesoc_interface1_bank_bus_we);
@@ -2836,8 +2878,8 @@ always @(*) begin
 end
 assign basesoc_csrbank1_ev_status_r = basesoc_interface1_bank_bus_dat_w[1:0];
 always @(*) begin
-	basesoc_csrbank1_ev_status_re <= 1'd0;
 	basesoc_csrbank1_ev_status_we <= 1'd0;
+	basesoc_csrbank1_ev_status_re <= 1'd0;
 	if ((basesoc_csrbank1_sel & (basesoc_interface1_bank_bus_adr[8:0] == 2'd3))) begin
 		basesoc_csrbank1_ev_status_re <= basesoc_interface1_bank_bus_we;
 		basesoc_csrbank1_ev_status_we <= (~basesoc_interface1_bank_bus_we);
@@ -2845,8 +2887,8 @@ always @(*) begin
 end
 assign basesoc_csrbank1_ev_pending_r = basesoc_interface1_bank_bus_dat_w[1:0];
 always @(*) begin
-	basesoc_csrbank1_ev_pending_re <= 1'd0;
 	basesoc_csrbank1_ev_pending_we <= 1'd0;
+	basesoc_csrbank1_ev_pending_re <= 1'd0;
 	if ((basesoc_csrbank1_sel & (basesoc_interface1_bank_bus_adr[8:0] == 3'd4))) begin
 		basesoc_csrbank1_ev_pending_re <= basesoc_interface1_bank_bus_we;
 		basesoc_csrbank1_ev_pending_we <= (~basesoc_interface1_bank_bus_we);
@@ -2854,8 +2896,8 @@ always @(*) begin
 end
 assign basesoc_csrbank1_ev_enable0_r = basesoc_interface1_bank_bus_dat_w[1:0];
 always @(*) begin
-	basesoc_csrbank1_ev_enable0_we <= 1'd0;
 	basesoc_csrbank1_ev_enable0_re <= 1'd0;
+	basesoc_csrbank1_ev_enable0_we <= 1'd0;
 	if ((basesoc_csrbank1_sel & (basesoc_interface1_bank_bus_adr[8:0] == 3'd5))) begin
 		basesoc_csrbank1_ev_enable0_re <= basesoc_interface1_bank_bus_we;
 		basesoc_csrbank1_ev_enable0_we <= (~basesoc_interface1_bank_bus_we);
@@ -2863,8 +2905,8 @@ always @(*) begin
 end
 assign basesoc_csrbank1_tuning_word0_r = basesoc_interface1_bank_bus_dat_w[31:0];
 always @(*) begin
-	basesoc_csrbank1_tuning_word0_re <= 1'd0;
 	basesoc_csrbank1_tuning_word0_we <= 1'd0;
+	basesoc_csrbank1_tuning_word0_re <= 1'd0;
 	if ((basesoc_csrbank1_sel & (basesoc_interface1_bank_bus_adr[8:0] == 3'd6))) begin
 		basesoc_csrbank1_tuning_word0_re <= basesoc_interface1_bank_bus_we;
 		basesoc_csrbank1_tuning_word0_we <= (~basesoc_interface1_bank_bus_we);
@@ -2946,6 +2988,7 @@ always @(posedge sys_clk) begin
 			bus_errors <= (bus_errors + 1'd1);
 		end
 	end
+	flush_count <= (flush_count + 1'd1);
 	if (tx_clear) begin
 		tx_pending <= 1'd0;
 	end
@@ -2967,6 +3010,13 @@ always @(posedge sys_clk) begin
 	asyncfifo0_graycounter0_q <= asyncfifo0_graycounter0_q_next;
 	asyncfifo1_graycounter3_q_binary <= asyncfifo1_graycounter3_q_next_binary;
 	asyncfifo1_graycounter3_q <= asyncfifo1_graycounter3_q_next;
+	if (wait_1) begin
+		if ((~done)) begin
+			count <= (count - 1'd1);
+		end
+	end else begin
+		count <= 19'd480000;
+	end
 	basesoc_state <= basesoc_next_state;
 	basesoc_interface0_bank_bus_dat_r <= 1'd0;
 	if (basesoc_csrbank0_sel) begin
@@ -3059,6 +3109,8 @@ always @(posedge sys_clk) begin
 		asyncfifo0_graycounter0_q_binary <= 3'd0;
 		asyncfifo1_graycounter3_q <= 3'd0;
 		asyncfifo1_graycounter3_q_binary <= 3'd0;
+		flush_count <= 1'd0;
+		count <= 19'd480000;
 		basesoc_state <= 1'd0;
 	end
 	multiregimpl7_regs0 <= cdcusbphy_rts;
@@ -3979,5 +4031,5 @@ TRELLIS_IO #(
 endmodule
 
 // -----------------------------------------------------------------------------
-//  Auto-Generated by LiteX on 2021-11-18 16:44:59.
+//  Auto-Generated by LiteX on 2021-11-24 14:14:03.
 //------------------------------------------------------------------------------
