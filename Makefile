@@ -190,6 +190,8 @@ CLK_FREQUENCY=48000000
 LPF=constraints/orange-crab-0.2.lpf
 PACKAGE=CSFBGA285
 NEXTPNR_FLAGS=--85k --freq 48 --speed 8 --write microwatt-routed.json --timing-allow-fail --ignore-loops
+# gives a few extra mhz? at the cost of 3x slower
+# NEXTPNR_FLAGS += --placer-heap-beta 0.95 --placer-heap-alpha 0.05
 OPENOCD_JTAG_CONFIG=openocd/olimex-arm-usb-tiny-h.cfg
 OPENOCD_DEVICE_CONFIG=openocd/LFE5U-85F.cfg
 toplevel=fpga/top-orangecrab0.2.vhdl
