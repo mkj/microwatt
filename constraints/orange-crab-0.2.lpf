@@ -9,14 +9,10 @@ FREQUENCY PORT "ext_clk" 48.0 MHz;
 LOCATE COMP "ext_rst_n" SITE "J17";
 IOBUF PORT "ext_rst_n" IO_TYPE=SSTL135_I;
 
-LOCATE COMP "uart_main_tx" SITE "N17"; // io_0
-LOCATE COMP "uart_main_rx" SITE "M18"; // io_1
 LOCATE COMP "usb_d_p" SITE "N1";
 LOCATE COMP "usb_d_n" SITE "M2";
 LOCATE COMP "usb_pullup" SITE "N2";
 
-IOBUF PORT "uart_main_tx" IO_TYPE=LVCMOS33;
-IOBUF PORT "uart_main_rx" IO_TYPE=LVCMOS33;
 IOBUF PORT "usb_d_p" IO_TYPE=LVCMOS33;
 IOBUF PORT "usb_d_n" IO_TYPE=LVCMOS33;
 IOBUF PORT "usb_pullup" IO_TYPE=LVCMOS33;
@@ -28,6 +24,52 @@ LOCATE COMP "led0_b" SITE "J3";
 IOBUF PORT "led0_g" IO_TYPE=LVCMOS33;
 IOBUF PORT "led0_g" IO_TYPE=LVCMOS33;
 IOBUF PORT "led0_b" IO_TYPE=LVCMOS33;
+
+// discontinuous gpio numbers, match orangecrab litex platform
+LOCATE COMP "pin_gpio_0" SITE "N17"; // tx
+LOCATE COMP "pin_gpio_1" SITE "M18"; // rx
+LOCATE COMP "pin_gpio_2" SITE "C10"; // sda
+LOCATE COMP "pin_gpio_3" SITE "C9"; // scl
+//
+LOCATE COMP "pin_gpio_5" SITE "B10"; // io_5
+LOCATE COMP "pin_gpio_6" SITE "B9"; // ...
+//
+LOCATE COMP "pin_gpio_9" SITE "C8"; //
+LOCATE COMP "pin_gpio_10" SITE "B8"; //
+LOCATE COMP "pin_gpio_11" SITE "A8"; //
+LOCATE COMP "pin_gpio_12" SITE "H2"; //
+LOCATE COMP "pin_gpio_13" SITE "J2"; // io_13
+LOCATE COMP "pin_gpio_14" SITE "N15"; // miso
+LOCATE COMP "pin_gpio_15" SITE "R17"; // sck
+LOCATE COMP "pin_gpio_16" SITE "N16"; // mosi
+
+LOCATE COMP "pin_io_a0" SITE "L4";
+LOCATE COMP "pin_io_a1" SITE "N3";
+LOCATE COMP "pin_io_a2" SITE "N4";
+LOCATE COMP "pin_io_a3" SITE "H4";
+LOCATE COMP "pin_io_a4" SITE "G4";
+LOCATE COMP "pin_io_a5" SITE "T17";
+
+IOBUF PORT "pin_gpio_0" IO_TYPE=LVCMOS33;
+IOBUF PORT "pin_gpio_1" IO_TYPE=LVCMOS33;
+IOBUF PORT "pin_gpio_2" IO_TYPE=LVCMOS33;
+IOBUF PORT "pin_gpio_3" IO_TYPE=LVCMOS33;
+IOBUF PORT "pin_gpio_5" IO_TYPE=LVCMOS33;
+IOBUF PORT "pin_gpio_6" IO_TYPE=LVCMOS33;
+IOBUF PORT "pin_gpio_9" IO_TYPE=LVCMOS33;
+IOBUF PORT "pin_gpio_10" IO_TYPE=LVCMOS33;
+IOBUF PORT "pin_gpio_11" IO_TYPE=LVCMOS33;
+IOBUF PORT "pin_gpio_12" IO_TYPE=LVCMOS33;
+IOBUF PORT "pin_gpio_13" IO_TYPE=LVCMOS33;
+IOBUF PORT "pin_gpio_14" IO_TYPE=LVCMOS33;
+IOBUF PORT "pin_gpio_15" IO_TYPE=LVCMOS33;
+IOBUF PORT "pin_gpio_16" IO_TYPE=LVCMOS33;
+IOBUF PORT "pin_io_a0" IO_TYPE=LVCMOS33;
+IOBUF PORT "pin_io_a1" IO_TYPE=LVCMOS33;
+IOBUF PORT "pin_io_a2" IO_TYPE=LVCMOS33;
+IOBUF PORT "pin_io_a3" IO_TYPE=LVCMOS33;
+IOBUF PORT "pin_io_a4" IO_TYPE=LVCMOS33;
+IOBUF PORT "pin_io_a5" IO_TYPE=LVCMOS33;
 
 LOCATE COMP "ddram_a[0]"  SITE "C4";
 LOCATE COMP "ddram_a[1]"  SITE "D2";
@@ -168,22 +210,17 @@ LOCATE COMP "spi_flash_hold_n" SITE "N18";
 IOBUF PORT "spi_flash_hold_n" IO_TYPE=LVCMOS33;
 
 LOCATE COMP "sdcard_data[0]" SITE "J1";
-IOBUF PORT "sdcard_data[0]" IO_TYPE=LVCMOS33;
-IOBUF PORT "sdcard_data[0]" SLEWRATE=FAST;
 LOCATE COMP "sdcard_data[1]" SITE "K3";
-IOBUF PORT "sdcard_data[1]" IO_TYPE=LVCMOS33;
-IOBUF PORT "sdcard_data[1]" SLEWRATE=FAST;
 LOCATE COMP "sdcard_data[2]" SITE "L3";
-IOBUF PORT "sdcard_data[2]" IO_TYPE=LVCMOS33;
-IOBUF PORT "sdcard_data[2]" SLEWRATE=FAST;
 LOCATE COMP "sdcard_data[3]" SITE "M1";
-IOBUF PORT "sdcard_data[3]" IO_TYPE=LVCMOS33;
-IOBUF PORT "sdcard_data[3]" SLEWRATE=FAST;
 LOCATE COMP "sdcard_cmd" SITE "K2";
-IOBUF PORT "sdcard_cmd" IO_TYPE=LVCMOS33;
-IOBUF PORT "sdcard_cmd" SLEWRATE=FAST;
 LOCATE COMP "sdcard_clk" SITE "K1";
-IOBUF PORT "sdcard_clk" IO_TYPE=LVCMOS33;
-IOBUF PORT "sdcard_clk" SLEWRATE=FAST;
 LOCATE COMP "sdcard_cd" SITE "L1";
+
+IOBUF PORT "sdcard_data[0]" IO_TYPE=LVCMOS33 SLEWRATE=FAST PULLMODE=UP;
+IOBUF PORT "sdcard_data[1]" IO_TYPE=LVCMOS33 SLEWRATE=FAST PULLMODE=UP;
+IOBUF PORT "sdcard_data[2]" IO_TYPE=LVCMOS33 SLEWRATE=FAST PULLMODE=UP;
+IOBUF PORT "sdcard_data[3]" IO_TYPE=LVCMOS33 SLEWRATE=FAST PULLMODE=UP;
+IOBUF PORT "sdcard_cmd" IO_TYPE=LVCMOS33 SLEWRATE=FAST PULLMODE=UP;
+IOBUF PORT "sdcard_clk" IO_TYPE=LVCMOS33 SLEWRATE=FAST;
 IOBUF PORT "sdcard_cd" IO_TYPE=LVCMOS33;

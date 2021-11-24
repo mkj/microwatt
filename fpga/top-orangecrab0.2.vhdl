@@ -34,8 +34,8 @@ entity toplevel is
         ext_rst_n : in  std_ulogic;
 
         -- UART0 signals:
-        uart_main_tx : out std_ulogic;
-        uart_main_rx : in  std_ulogic;
+        pin_gpio_0 : out std_ulogic;
+        pin_gpio_1 : in  std_ulogic;
 
         -- USB signals:
         usb_d_p    : in std_ulogic;
@@ -227,8 +227,8 @@ begin
             rst               => soc_rst,
 
             -- UART signals
-            uart0_txd         => uart_main_tx,
-            uart0_rxd         => uart_main_rx,
+            uart0_txd         => pin_gpio_0,
+            uart0_rxd         => pin_gpio_1,
 
             usb_d_p           => usb_d_p,
             usb_d_n           => usb_d_n,
