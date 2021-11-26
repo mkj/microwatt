@@ -5,9 +5,6 @@ use ieee.math_real.all;
 library work;
 use work.wishbone_types.all;
 
-library unisim;
-use unisim.vcomponents.all;
-
 entity dmi_dtm is
     generic(ABITS : INTEGER:=8;
             DBITS : INTEGER:=32);
@@ -30,6 +27,7 @@ architecture behaviour of dmi_dtm is
     signal tdi        : std_ulogic;
     signal tdo        : std_ulogic;
     signal tck        : std_ulogic;
+    signal jce1       : std_ulogic;
 
     -- signals to match dmi_dtb_xilinx
     signal jtag_reset : std_ulogic;
@@ -108,7 +106,7 @@ begin
         )
         port map (
             JTDO1 => tdo,
-            JTDO2 => open,
+            JTDO2 => '0',
             JTDI => tdi,
             JTCK => tck,
             JRTI1 => open,
@@ -123,14 +121,18 @@ begin
     -- capture signal
     jce1_sync : process(sys_clk)
     begin
-        jce1_d = jce1
-    end process
-    capture <= jce1 & ~jce1_d
-    jtag_reset = ~jtag_reset_n
+        jce1_d <= jce1;
+    end process;
+    capture <= jce1 and not jce1_d;
+    jtag_reset <= not jtag_reset_n;
+    sel <= '1';
 
     -- what is the BUFG in xilinx for?
     -- XXX do we need a delay like litex jtag.py?
-    jtag_clk <= tck;
+    process(tck)
+    begin
+        jtag_clk <= tck;
+    end process;
 
     -- dmi_req synchronization
     dmi_req_sync : process(sys_clk)

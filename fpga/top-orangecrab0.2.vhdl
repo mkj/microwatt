@@ -171,26 +171,6 @@ architecture behaviour of toplevel is
     attribute syn_noprune: boolean ;
     attribute syn_noprune of USRMCLK: component is true;
 
-    component JTAGG is
-        generic (
-            ER1 : string := "ENABLED";
-            ER2 : string := "ENABLED"
-        );
-        port(
-            JTDO1 : in std_ulogic;
-            JTDO2 : in std_ulogic;
-            JTDI : out std_ulogic;
-            JTCK : out std_ulogic;
-            JRTI1 : out std_ulogic;
-            JRTI2 : out std_ulogic;
-            JSHIFT : out std_ulogic;
-            JUPDATE : out std_ulogic;
-            JRSTN : out std_ulogic;
-            JCE1 : out std_ulogic;
-            JCE2 : out std_ulogic
-        );
-    end component;
-
 begin
 
     -- Main SoC
@@ -311,14 +291,6 @@ begin
     --    spi_flash_clk    <= spi_sck;
     --end generate;
 
-    jtag: JTAGG
-        generic map(
-            ER2 => "DISABLED"
-        )
-        port map (
-            JTDO1 => '0',
-            JTDO2 => '0'
-        );
 
 
     uclk: USRMCLK port map (

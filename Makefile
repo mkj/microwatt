@@ -203,6 +203,7 @@ random_files=nonrandom.vhdl
 SYNTH_ECP5_FLAGS=-abc2 -abc9
 soc_extra_v += valentyusb/generated/orangecrab-85-0.2/gateware/valentyusb.v \
 			   litesdcard/generated/lattice/litesdcard_core.v
+dmi_dtm=dmi_dtm_ecp5.vhdl
 endif
 
 # ECP5-EVN

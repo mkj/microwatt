@@ -273,7 +273,7 @@ static int jtag_init(const char *target, int freq)
 	}
 
 	/* XXX Hard wire part 0, that might need to change (use params and detect !) */
-	rc = urj_tap_manual_add(jc, 6);
+	rc = urj_tap_manual_add(jc, 8);
 	if (rc < 0) {
 		fprintf(stderr, "JTAG failed to add part! : %s\n", urj_error_describe());
 		return -1;
@@ -293,11 +293,13 @@ static int jtag_init(const char *target, int freq)
 	}
 	rc = urj_part_data_register_define(p, "IDCODE_REG", 32);
 	if (rc != URJ_STATUS_OK) {
-		fprintf(stderr, "JTAG failed to add IDCODE_REG register !\n");
+		fprintf(stderr, "JTAG failed to add IDCODE_REG register! : %s\n",
+			urj_error_describe());
 		return -1;
 	}
-	if (urj_part_instruction_define(p, "IDCODE", "001001", "IDCODE_REG") == NULL) {
-		fprintf(stderr, "JTAG failed to add IDCODE instruction !\n");
+	if (urj_part_instruction_define(p, "IDCODE", "11100000", "IDCODE_REG") == NULL) {
+		fprintf(stderr, "JTAG failed to add IDCODE instruction! : %s\n",
+			urj_error_describe());
 		return -1;
 	}
 	rc = urj_part_data_register_define(p, "USER2_REG", 74);
@@ -305,7 +307,7 @@ static int jtag_init(const char *target, int freq)
 		fprintf(stderr, "JTAG failed to add USER2_REG register !\n");
 		return -1;
 	}
-	if (urj_part_instruction_define(p, "USER2", "000011", "USER2_REG") == NULL) {
+	if (urj_part_instruction_define(p, "USER2", "00110010", "USER2_REG") == NULL) {
 		fprintf(stderr, "JTAG failed to add USER2 instruction !\n");
 		return -1;
 	}
