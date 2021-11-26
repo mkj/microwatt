@@ -12,6 +12,7 @@ GHDLSYNTH ?= $(shell (yosys -H | grep -q ghdl) || echo -m ghdl.so)
 YOSYS     ?= yosys
 NEXTPNR   ?= nextpnr-ecp5
 ECPPACK   ?= ecppack
+ECPPROG   ?= ecpprog
 OPENOCD   ?= openocd
 VUNITRUN  ?= python3 ./run.py
 VERILATOR ?= verilator
@@ -281,6 +282,12 @@ apolloprog: microwatt.bit
 apolloflash: microwatt.bit
 	$(APOLLO) flash-info
 	$(APOLLO) flash $< 0x80000
+
+ecpprog: microwatt.bit
+	$(ECPPROG) -S $<
+
+ecpflash: microwatt.bit
+	$(ECPPROG) -o 0x80000 $<
 
 tests = $(sort $(patsubst tests/%.out,%,$(wildcard tests/*.out)))
 tests_console = $(sort $(patsubst tests/%.console_out,%,$(wildcard tests/*.console_out)))
