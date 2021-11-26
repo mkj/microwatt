@@ -30,6 +30,8 @@ architecture rtl of cache_ram is
     signal ram : ram_type;
     attribute ram_style : string;
     attribute ram_style of ram : signal is "block";
+    attribute syn_ramstyle : string;
+    attribute syn_ramstyle of ram : signal is "block_ram";
 
     signal rd_data0 : std_logic_vector(WIDTH - 1 downto 0);
 

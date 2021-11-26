@@ -228,6 +228,8 @@ architecture behaviour of litedram_wrapper is
 
     attribute ram_style : string;
     attribute ram_style of cache_tags : signal is "distributed";
+    attribute syn_ramstyle : string;
+    attribute syn_ramstyle of cache_tags : signal is "distributed";
 
     --
     -- Store queue signals

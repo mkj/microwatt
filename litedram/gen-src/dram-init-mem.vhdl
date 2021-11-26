@@ -105,6 +105,8 @@ architecture rtl of dram_init_mem is
 
     attribute ram_style : string;
     attribute ram_style of init_ram: signal is "block";
+    attribute syn_ramstyle : string;
+    attribute syn_ramstyle of init_ram : signal is "block_ram";
 
     signal obuf : std_ulogic_vector(31 downto 0);
     signal oack : std_ulogic;

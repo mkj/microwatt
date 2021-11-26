@@ -259,6 +259,8 @@ begin
         attribute ram_style of log_array : signal is "block";
         attribute ram_decomp : string;
         attribute ram_decomp of log_array : signal is "power";
+        attribute syn_ramstyle : string;
+        attribute syn_ramstyle of log_array : signal is "block_ram";
 
     begin
         -- Use MSB of read addresses to stop the logging

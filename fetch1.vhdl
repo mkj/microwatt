@@ -103,6 +103,8 @@ begin
         signal btc_memory : btc_mem_type;
         attribute ram_style : string;
         attribute ram_style of btc_memory : signal is "block";
+        attribute syn_ramstyle : string;
+        attribute syn_ramstyle of btc_memory : signal is "block_ram";
 
         signal btc_valids : std_ulogic_vector(BTC_SIZE - 1 downto 0);
         attribute ram_style of btc_valids : signal is "distributed";

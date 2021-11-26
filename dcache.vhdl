@@ -126,7 +126,9 @@ architecture rtl of dcache is
     signal cache_valids  : cache_valids_t;
 
     attribute ram_style : string;
+    attribute syn_ramstyle : string;
     attribute ram_style of cache_tags : signal is "distributed";
+    attribute syn_ramstyle of cache_tags : signal is "distributed";
 
     -- L1 TLB.
     constant TLB_SET_BITS : natural := log2(TLB_SET_SIZE);
@@ -153,6 +155,8 @@ architecture rtl of dcache is
     signal dtlb_ptes : tlb_ptes_t;
     attribute ram_style of dtlb_tags : signal is "distributed";
     attribute ram_style of dtlb_ptes : signal is "distributed";
+    attribute syn_ramstyle of dtlb_tags : signal is "distributed";
+    attribute syn_ramstyle of dtlb_ptes : signal is "distributed";
 
     -- Record for storing permission, attribute, etc. bits from a PTE
     type perm_attr_t is record
