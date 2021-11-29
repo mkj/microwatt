@@ -16,7 +16,7 @@ LDFLAGS = -T powerpc.lds
 
 all: hello_world.hex
 
-console.o: ../lib/console.c
+console.o: ../lib/liteuart_console.c
 	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
 
 hello_world.elf: hello_world.o head.o console.o

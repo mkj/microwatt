@@ -1,7 +1,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include "console.h"
+#include "liteuart_console.h"
 
 static char mw_logo[] =
 
@@ -17,14 +17,14 @@ static char mw_logo[] =
 
 int main(void)
 {
-	console_init();
+	usb_console_init();
 
-	puts(mw_logo);
+	usb_puts(mw_logo);
 
 	while (1) {
-		unsigned char c = getchar();
-		putchar(c);
+		unsigned char c = usb_getchar();
+		usb_putchar(c);
 		if (c == 13) // if CR send LF
-			putchar(10);
+			usb_putchar(10);
 	}
 }
