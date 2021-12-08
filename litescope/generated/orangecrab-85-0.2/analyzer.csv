@@ -1,0 +1,3 @@
+config,None,data_width,12
+config,None,depth,2048
+signal,0,signals_signals,12
