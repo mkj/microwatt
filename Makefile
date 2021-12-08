@@ -200,10 +200,13 @@ litedram_target=orangecrab-85-0.2
 # disable random for the time being so we can try abc9 which doesn't like loops
 #random_files=fpga/fpga-random.vhdl
 random_files=nonrandom.vhdl
-SYNTH_ECP5_FLAGS=-abc2 -abc9
+SYNTH_ECP5_FLAGS=-abc9
 soc_extra_v += valentyusb/generated/orangecrab-85-0.2/gateware/valentyusb.v \
-			   litesdcard/generated/lattice/litesdcard_core.v
-dmi_dtm=dmi_dtm_ecp5.vhdl
+			   litesdcard/generated/lattice/litesdcard_core.v \
+			   litescope/generated/orangecrab-85-0.2/gateware/litescope.v \
+
+
+# dmi_dtm=dmi_dtm_ecp5.vhdl
 endif
 
 # ECP5-EVN
@@ -243,7 +246,7 @@ fpga_files = fpga/soc_reset.vhdl \
 synth_files = $(core_files) $(soc_files) $(soc_extra_synth) $(fpga_files) $(clkgen) $(toplevel) $(dmi_dtm)
 
 microwatt.json: $(synth_files) $(RAM_INIT_FILE) $(soc_extra_v)
-	$(YOSYS) $(GHDLSYNTH) -p "$(YOSYS_EXTRA_SCRIPT) ghdl --std=08 --no-formal $(GHDL_IMAGE_GENERICS) $(synth_files) -e toplevel; synth_ecp5 -nowidelut -json $@  $(SYNTH_ECP5_FLAGS)" $(uart_files) $(soc_extra_v)
+	$(YOSYS) $(GHDLSYNTH) -p "$(YOSYS_EXTRA_SCRIPT) ghdl --std=08 --no-formal $(GHDL_IMAGE_GENERICS) $(synth_files) -e toplevel; scratchpad -set abc9.D 10417; synth_ecp5 -nowidelut -json $@  $(SYNTH_ECP5_FLAGS)" $(uart_files) $(soc_extra_v)
 
 microwatt.v: $(synth_files) $(RAM_INIT_FILE)
 	$(YOSYS) $(GHDLSYNTH) -p "$(YOSYS_EXTRA_SCRIPT) ghdl --std=08 --no-formal $(GHDL_IMAGE_GENERICS) $(synth_files) -e toplevel; write_verilog $@"
