@@ -14,6 +14,7 @@ LX_DEPENDENCIES = []
 import argparse
 import os
 import yaml
+from pathlib import Path
 
 from math import log2
 
@@ -71,10 +72,12 @@ class BaseSoC(SoCCore):
         self.add_uartbone(name="uart_bridge")
         #self.add_jtagbone()
 
+        analyzer_csv = Path(output_dir) / "analyzer.csv"
+
         self.submodules.analyzer = LiteScopeAnalyzer(platform.request("signals"),
             depth        = 2048,
             clock_domain = "sys",
-            csr_csv      = "analyzer.csv")
+            csr_csv      = analyzer_csv)
 
 _io = [
     # Wishbone
@@ -91,13 +94,15 @@ _io = [
     ),
 ]
 
-def generate(core_config, output_dir, csr_csv):
+def generate(core_config, output_dir):
 
     toolchain = core_config["toolchain"]
     if toolchain == "trellis":
         platform = LatticePlatform(core_config["device"], [], toolchain=toolchain)
     else:
         raise ValueError(f"Unknown config toolchain {toolchain}")
+
+    csr_csv = Path(output_dir) / "csr.csv"
 
     soc = BaseSoC(platform, _io, core_config["sys_freq"],
                             cpu_type=None, cpu_variant=None,
@@ -122,7 +127,8 @@ def main():
 
     core_config = yaml.load(args.config.read(), Loader=yaml.Loader)
     output_dir = args.dir
-    generate(core_config, output_dir, args.csr)
+    generate(core_config, output_dir)
+
 
     print(
 """Build complete.  Output files:
