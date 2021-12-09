@@ -356,9 +356,12 @@ begin
                 DRAM_ALINES => 14,
                 DRAM_DLINES => 16,
                 DRAM_PORT_WIDTH => 128,
-                NUM_LINES => 8, -- reduce from default of 64 to make smaller/timing
                 PAYLOAD_FILE => RAM_INIT_FILE,
-                PAYLOAD_SIZE => PAYLOAD_SIZE
+                PAYLOAD_SIZE => PAYLOAD_SIZE,
+
+                -- shrink
+                NUM_LINES => 2,
+                NUM_WAYS => 1
                 )
             port map(
                 clk_in          => ext_clk,
