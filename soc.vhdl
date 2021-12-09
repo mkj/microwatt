@@ -113,6 +113,9 @@ entity soc is
 	uart0_txd    : out std_ulogic;
 	uart0_rxd    : in  std_ulogic := '0';
 
+    --  for scope
+    uart0_scope : out std_ulogic_vector(7 downto 0);
+
 	-- UART1 signals:
 	uart1_txd    : out std_ulogic;
 	uart1_rxd    : in  std_ulogic := '0';
@@ -815,6 +818,7 @@ begin
 
     wb_uart0_out.dat <= x"000000" & uart0_dat8;
     wb_uart0_out.stall <= not wb_uart0_out.ack;
+    uart0_scope <= uart0_dat8;
 
     --
     -- UART1

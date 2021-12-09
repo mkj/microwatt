@@ -115,11 +115,12 @@ architecture behaviour of toplevel is
     -- for conversion from non-pipelined wishbone to pipelined
     signal wb_sddma_stb_sent   : std_ulogic;
 
-    signal sdscope_data_i : std_ulogic_vector(3 downto 0);
-    signal sdscope_data_o : std_ulogic_vector(3 downto 0);
-    signal sdscope_cmd_i  : std_ulogic;
-    signal sdscope_cmd_o  : std_ulogic;
+    signal sdscope_data : std_ulogic_vector(3 downto 0);
+    signal sdscope_data_oe : std_ulogic;
+    signal sdscope_cmd  : std_ulogic;
+    signal sdscope_cmd_oe  : std_ulogic;
     signal sdscope_clk   : std_ulogic;
+    signal sdscope_extra   : std_ulogic_vector(7 downto 0);
 
     -- Control/status
     signal core_alt_reset : std_ulogic;
@@ -189,10 +190,6 @@ begin
             HAS_DRAM           => USE_LITEDRAM,
             DRAM_SIZE          => 256 * 1024 * 1024,
             DRAM_INIT_SIZE     => PAYLOAD_SIZE,
-<<<<<<< HEAD
-=======
-            DISABLE_FLATTEN_CORE => false,
->>>>>>> 651d638 (litescope works with uart)
             HAS_SPI_FLASH      => true,
             SPI_FLASH_DLINES   => 4,
             SPI_FLASH_OFFSET   => SPI_FLASH_OFFSET,
@@ -223,6 +220,9 @@ begin
             -- UART signals
             uart0_txd         => pin_gpio_0,
             uart0_rxd         => pin_gpio_1,
+
+            --  for scope
+            uart0_scope => sdscope_extra,
 
 	    -- UART1 signals
 	    --uart1_txd         => uart_pmod_tx,
@@ -414,7 +414,13 @@ begin
             rst         : in    std_ulogic;
             uart_bridge_tx : out std_ulogic;
             uart_bridge_rx : in  std_ulogic;
-            signals_signals : in std_ulogic_vector(11 downto 0)
+
+            signals_data : in std_ulogic_vector(3 downto 0);
+            signals_data_oe : in std_ulogic;
+            signals_cmd : in std_ulogic;
+            signals_cmd_oe : in std_ulogic;
+            signals_clk : in std_ulogic;
+            signals_extra : in std_ulogic_vector(7 downto 0)
             );
         end component;
 
@@ -425,12 +431,13 @@ begin
                 rst           => soc_rst,
                 uart_bridge_tx  => pin_gpio_5,
                 uart_bridge_rx  => pin_gpio_6,
-                signals_signals(3 downto 0) => sdscope_data_o,
-                signals_signals(7 downto 4)=> sdscope_data_i,
-                signals_signals(8 )=> sdscope_cmd_o,
-                signals_signals(9 )=> sdscope_cmd_i,
-                signals_signals(10) => sdscope_clk,
-                signals_signals(11) => sdcard_cd
+
+                signals_data => sdscope_data,
+                signals_data_oe => sdscope_data_oe,
+                signals_cmd => sdscope_cmd,
+                signals_cmd_oe => sdscope_cmd_oe,
+                signals_clk => sdscope_clk,
+                signals_extra => sdscope_extra
         );
     end generate;
 
@@ -471,11 +478,11 @@ begin
             sdcard_clk    : out   std_ulogic;
             sdcard_cd     : in    std_ulogic;
             irq           : out   std_ulogic;
-            -- extra pads to avoid tristate problems
-            sdpads_data_i   : out std_ulogic_vector(3 downto 0);
-            sdpads_data_o   : out std_ulogic_vector(3 downto 0);
-            sdpads_cmd_i    : out std_ulogic;
-            sdpads_cmd_o    : out std_ulogic;
+            -- extra debug pads to avoid tristate problems
+            sdpads_data     : out std_ulogic_vector(3 downto 0);
+            sdpads_data_oe  : out std_ulogic;
+            sdpads_cmd      : out std_ulogic;
+            sdpads_cmd_oe   : out std_ulogic;
             sdpads_clk      : out std_ulogic
             );
         end component;
@@ -514,10 +521,10 @@ begin
                 sdcard_cmd    => sdcard_cmd,
                 sdcard_clk    => sdcard_clk,
                 sdcard_cd     => sdcard_cd,
-                sdpads_cmd_i  => sdscope_cmd_i,
-                sdpads_cmd_o  => sdscope_cmd_o,
-                sdpads_data_i => sdscope_data_i,
-                sdpads_data_o => sdscope_data_o,
+                sdpads_cmd    => sdscope_cmd,
+                sdpads_cmd_oe => sdscope_cmd_oe,
+                sdpads_data   => sdscope_data,
+                sdpads_data_oe=> sdscope_data_oe,
                 sdpads_clk    => sdscope_clk,
                 irq           => ext_irq_sdcard
                 );

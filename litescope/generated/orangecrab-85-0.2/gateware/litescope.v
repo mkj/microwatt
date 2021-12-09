@@ -9,7 +9,7 @@
 // Filename   : litescope.v
 // Device     : LFE5U-85F-8MG285C
 // LiteX sha1 : --------
-// Date       : 2021-12-08 16:36:59
+// Date       : 2021-12-09 16:07:09
 //------------------------------------------------------------------------------
 
 
@@ -22,7 +22,12 @@ module litescope (
 	input  wire rst,
 	output reg  uart_bridge_tx,
 	input  wire uart_bridge_rx,
-	input  wire [11:0] signals_signals
+	input  wire [3:0] signals_data,
+	input  wire signals_data_oe,
+	input  wire signals_cmd,
+	input  wire signals_cmd_oe,
+	input  wire signals_clk,
+	input  wire [7:0] signals_extra
 );
 
 
@@ -91,13 +96,13 @@ wire analyzer_mux_valid;
 reg  analyzer_mux_ready = 1'd0;
 reg  analyzer_mux_first = 1'd0;
 reg  analyzer_mux_last = 1'd0;
-wire [11:0] analyzer_mux_payload_data;
+wire [15:0] analyzer_mux_payload_data;
 reg  analyzer_mux_payload_hit = 1'd0;
 reg  analyzer_mux_source_valid = 1'd0;
 wire analyzer_mux_source_ready;
 reg  analyzer_mux_source_first = 1'd0;
 reg  analyzer_mux_source_last = 1'd0;
-reg  [11:0] analyzer_mux_source_payload_data = 12'd0;
+reg  [15:0] analyzer_mux_source_payload_data = 16'd0;
 reg  analyzer_mux_source_payload_hit = 1'd0;
 reg  analyzer_mux_value_storage = 1'd0;
 reg  analyzer_mux_value_re = 1'd0;
@@ -106,13 +111,13 @@ wire analyzer_trigger_sink_sink_valid;
 wire analyzer_trigger_sink_sink_ready;
 wire analyzer_trigger_sink_sink_first;
 wire analyzer_trigger_sink_sink_last;
-wire [11:0] analyzer_trigger_sink_sink_payload_data;
+wire [15:0] analyzer_trigger_sink_sink_payload_data;
 wire analyzer_trigger_sink_sink_payload_hit;
 wire analyzer_trigger_source_source_valid;
 wire analyzer_trigger_source_source_ready;
 wire analyzer_trigger_source_source_first;
 wire analyzer_trigger_source_source_last;
-wire [11:0] analyzer_trigger_source_source_payload_data;
+wire [15:0] analyzer_trigger_source_source_payload_data;
 reg  analyzer_trigger_source_source_payload_hit = 1'd0;
 reg  analyzer_trigger_enable_storage = 1'd0;
 reg  analyzer_trigger_enable_re = 1'd0;
@@ -123,9 +128,9 @@ reg  analyzer_trigger_mem_write_re = 1'd0;
 wire analyzer_trigger_mem_write_r;
 reg  analyzer_trigger_mem_write_we = 1'd0;
 reg  analyzer_trigger_mem_write_w = 1'd0;
-reg  [11:0] analyzer_trigger_mem_mask_storage = 12'd0;
+reg  [15:0] analyzer_trigger_mem_mask_storage = 16'd0;
 reg  analyzer_trigger_mem_mask_re = 1'd0;
-reg  [11:0] analyzer_trigger_mem_value_storage = 12'd0;
+reg  [15:0] analyzer_trigger_mem_value_storage = 16'd0;
 reg  analyzer_trigger_mem_value_re = 1'd0;
 wire analyzer_trigger_mem_full_status;
 wire analyzer_trigger_mem_full_we;
@@ -137,20 +142,20 @@ wire analyzer_trigger_mem_sink_valid;
 wire analyzer_trigger_mem_sink_ready;
 reg  analyzer_trigger_mem_sink_first = 1'd0;
 reg  analyzer_trigger_mem_sink_last = 1'd0;
-wire [11:0] analyzer_trigger_mem_sink_payload_mask;
-wire [11:0] analyzer_trigger_mem_sink_payload_value;
+wire [15:0] analyzer_trigger_mem_sink_payload_mask;
+wire [15:0] analyzer_trigger_mem_sink_payload_value;
 wire analyzer_trigger_mem_source_valid;
 wire analyzer_trigger_mem_source_ready;
 wire analyzer_trigger_mem_source_first;
 wire analyzer_trigger_mem_source_last;
-wire [11:0] analyzer_trigger_mem_source_payload_mask;
-wire [11:0] analyzer_trigger_mem_source_payload_value;
+wire [15:0] analyzer_trigger_mem_source_payload_mask;
+wire [15:0] analyzer_trigger_mem_source_payload_value;
 wire analyzer_trigger_mem_asyncfifo_we;
 wire analyzer_trigger_mem_asyncfifo_writable;
 wire analyzer_trigger_mem_asyncfifo_re;
 wire analyzer_trigger_mem_asyncfifo_readable;
-wire [25:0] analyzer_trigger_mem_asyncfifo_din;
-wire [25:0] analyzer_trigger_mem_asyncfifo_dout;
+wire [33:0] analyzer_trigger_mem_asyncfifo_din;
+wire [33:0] analyzer_trigger_mem_asyncfifo_dout;
 wire analyzer_trigger_mem_graycounter0_ce;
 reg  [4:0] analyzer_trigger_mem_graycounter0_q = 5'd0;
 wire [4:0] analyzer_trigger_mem_graycounter0_q_next;
@@ -164,17 +169,17 @@ reg  [4:0] analyzer_trigger_mem_graycounter1_q_next_binary = 5'd0;
 wire [4:0] analyzer_trigger_mem_produce_rdomain;
 wire [4:0] analyzer_trigger_mem_consume_wdomain;
 wire [3:0] analyzer_trigger_mem_wrport_adr;
-wire [25:0] analyzer_trigger_mem_wrport_dat_r;
+wire [33:0] analyzer_trigger_mem_wrport_dat_r;
 wire analyzer_trigger_mem_wrport_we;
-wire [25:0] analyzer_trigger_mem_wrport_dat_w;
+wire [33:0] analyzer_trigger_mem_wrport_dat_w;
 wire [3:0] analyzer_trigger_mem_rdport_adr;
-wire [25:0] analyzer_trigger_mem_rdport_dat_r;
-wire [11:0] analyzer_trigger_mem_fifo_in_payload_mask;
-wire [11:0] analyzer_trigger_mem_fifo_in_payload_value;
+wire [33:0] analyzer_trigger_mem_rdport_dat_r;
+wire [15:0] analyzer_trigger_mem_fifo_in_payload_mask;
+wire [15:0] analyzer_trigger_mem_fifo_in_payload_value;
 wire analyzer_trigger_mem_fifo_in_first;
 wire analyzer_trigger_mem_fifo_in_last;
-wire [11:0] analyzer_trigger_mem_fifo_out_payload_mask;
-wire [11:0] analyzer_trigger_mem_fifo_out_payload_value;
+wire [15:0] analyzer_trigger_mem_fifo_out_payload_mask;
+wire [15:0] analyzer_trigger_mem_fifo_out_payload_value;
 wire analyzer_trigger_mem_fifo_out_first;
 wire analyzer_trigger_mem_fifo_out_last;
 wire analyzer_trigger_hit;
@@ -185,13 +190,13 @@ wire analyzer_subsampler_sink_valid;
 wire analyzer_subsampler_sink_ready;
 wire analyzer_subsampler_sink_first;
 wire analyzer_subsampler_sink_last;
-wire [11:0] analyzer_subsampler_sink_payload_data;
+wire [15:0] analyzer_subsampler_sink_payload_data;
 wire analyzer_subsampler_sink_payload_hit;
 wire analyzer_subsampler_source_valid;
 wire analyzer_subsampler_source_ready;
 wire analyzer_subsampler_source_first;
 wire analyzer_subsampler_source_last;
-wire [11:0] analyzer_subsampler_source_payload_data;
+wire [15:0] analyzer_subsampler_source_payload_data;
 wire analyzer_subsampler_source_payload_hit;
 reg  [15:0] analyzer_subsampler_value_storage = 16'd0;
 reg  analyzer_subsampler_value_re = 1'd0;
@@ -202,7 +207,7 @@ wire analyzer_storage_sink_sink_valid;
 reg  analyzer_storage_sink_sink_ready = 1'd0;
 wire analyzer_storage_sink_sink_first;
 wire analyzer_storage_sink_sink_last;
-wire [11:0] analyzer_storage_sink_sink_payload_data;
+wire [15:0] analyzer_storage_sink_sink_payload_data;
 wire analyzer_storage_sink_sink_payload_hit;
 reg  analyzer_storage_enable_storage = 1'd0;
 reg  analyzer_storage_enable_re = 1'd0;
@@ -216,7 +221,7 @@ reg  analyzer_storage_offset_re = 1'd0;
 wire analyzer_storage_mem_valid_status;
 wire analyzer_storage_mem_valid_we;
 reg  analyzer_storage_mem_valid_re = 1'd0;
-wire [11:0] analyzer_storage_mem_data_status;
+wire [15:0] analyzer_storage_mem_data_status;
 wire analyzer_storage_mem_data_we;
 reg  analyzer_storage_mem_data_re = 1'd0;
 wire analyzer_storage_enable;
@@ -228,55 +233,55 @@ reg  analyzer_storage_mem_sink_valid = 1'd0;
 wire analyzer_storage_mem_sink_ready;
 reg  analyzer_storage_mem_sink_first = 1'd0;
 reg  analyzer_storage_mem_sink_last = 1'd0;
-reg  [11:0] analyzer_storage_mem_sink_payload_data = 12'd0;
+reg  [15:0] analyzer_storage_mem_sink_payload_data = 16'd0;
 wire analyzer_storage_mem_source_valid;
 reg  analyzer_storage_mem_source_ready = 1'd0;
 wire analyzer_storage_mem_source_first;
 wire analyzer_storage_mem_source_last;
-wire [11:0] analyzer_storage_mem_source_payload_data;
+wire [15:0] analyzer_storage_mem_source_payload_data;
 wire analyzer_storage_mem_re;
 reg  analyzer_storage_mem_readable = 1'd0;
 wire analyzer_storage_mem_syncfifo_we;
 wire analyzer_storage_mem_syncfifo_writable;
 wire analyzer_storage_mem_syncfifo_re;
 wire analyzer_storage_mem_syncfifo_readable;
-wire [13:0] analyzer_storage_mem_syncfifo_din;
-wire [13:0] analyzer_storage_mem_syncfifo_dout;
+wire [17:0] analyzer_storage_mem_syncfifo_din;
+wire [17:0] analyzer_storage_mem_syncfifo_dout;
 reg  [11:0] analyzer_storage_mem_level0 = 12'd0;
 reg  analyzer_storage_mem_replace = 1'd0;
 reg  [10:0] analyzer_storage_mem_produce = 11'd0;
 reg  [10:0] analyzer_storage_mem_consume = 11'd0;
 reg  [10:0] analyzer_storage_mem_wrport_adr = 11'd0;
-wire [13:0] analyzer_storage_mem_wrport_dat_r;
+wire [17:0] analyzer_storage_mem_wrport_dat_r;
 wire analyzer_storage_mem_wrport_we;
-wire [13:0] analyzer_storage_mem_wrport_dat_w;
+wire [17:0] analyzer_storage_mem_wrport_dat_w;
 wire analyzer_storage_mem_do_read;
 wire [10:0] analyzer_storage_mem_rdport_adr;
-wire [13:0] analyzer_storage_mem_rdport_dat_r;
+wire [17:0] analyzer_storage_mem_rdport_dat_r;
 wire analyzer_storage_mem_rdport_re;
 wire [11:0] analyzer_storage_mem_level1;
-wire [11:0] analyzer_storage_mem_fifo_in_payload_data;
+wire [15:0] analyzer_storage_mem_fifo_in_payload_data;
 wire analyzer_storage_mem_fifo_in_first;
 wire analyzer_storage_mem_fifo_in_last;
-wire [11:0] analyzer_storage_mem_fifo_out_payload_data;
+wire [15:0] analyzer_storage_mem_fifo_out_payload_data;
 wire analyzer_storage_mem_fifo_out_first;
 wire analyzer_storage_mem_fifo_out_last;
 reg  analyzer_storage_cdc_sink_valid = 1'd0;
 wire analyzer_storage_cdc_sink_ready;
 reg  analyzer_storage_cdc_sink_first = 1'd0;
 reg  analyzer_storage_cdc_sink_last = 1'd0;
-reg  [11:0] analyzer_storage_cdc_sink_payload_data = 12'd0;
+reg  [15:0] analyzer_storage_cdc_sink_payload_data = 16'd0;
 wire analyzer_storage_cdc_source_valid;
 wire analyzer_storage_cdc_source_ready;
 wire analyzer_storage_cdc_source_first;
 wire analyzer_storage_cdc_source_last;
-wire [11:0] analyzer_storage_cdc_source_payload_data;
+wire [15:0] analyzer_storage_cdc_source_payload_data;
 wire analyzer_storage_cdc_asyncfifo_we;
 wire analyzer_storage_cdc_asyncfifo_writable;
 wire analyzer_storage_cdc_asyncfifo_re;
 wire analyzer_storage_cdc_asyncfifo_readable;
-wire [13:0] analyzer_storage_cdc_asyncfifo_din;
-wire [13:0] analyzer_storage_cdc_asyncfifo_dout;
+wire [17:0] analyzer_storage_cdc_asyncfifo_din;
+wire [17:0] analyzer_storage_cdc_asyncfifo_dout;
 wire analyzer_storage_cdc_graycounter0_ce;
 reg  [2:0] analyzer_storage_cdc_graycounter0_q = 3'd0;
 wire [2:0] analyzer_storage_cdc_graycounter0_q_next;
@@ -290,15 +295,15 @@ reg  [2:0] analyzer_storage_cdc_graycounter1_q_next_binary = 3'd0;
 wire [2:0] analyzer_storage_cdc_produce_rdomain;
 wire [2:0] analyzer_storage_cdc_consume_wdomain;
 wire [1:0] analyzer_storage_cdc_wrport_adr;
-wire [13:0] analyzer_storage_cdc_wrport_dat_r;
+wire [17:0] analyzer_storage_cdc_wrport_dat_r;
 wire analyzer_storage_cdc_wrport_we;
-wire [13:0] analyzer_storage_cdc_wrport_dat_w;
+wire [17:0] analyzer_storage_cdc_wrport_dat_w;
 wire [1:0] analyzer_storage_cdc_rdport_adr;
-wire [13:0] analyzer_storage_cdc_rdport_dat_r;
-wire [11:0] analyzer_storage_cdc_fifo_in_payload_data;
+wire [17:0] analyzer_storage_cdc_rdport_dat_r;
+wire [15:0] analyzer_storage_cdc_fifo_in_payload_data;
 wire analyzer_storage_cdc_fifo_in_first;
 wire analyzer_storage_cdc_fifo_in_last;
-wire [11:0] analyzer_storage_cdc_fifo_out_payload_data;
+wire [15:0] analyzer_storage_cdc_fifo_out_payload_data;
 wire analyzer_storage_cdc_fifo_out_first;
 wire analyzer_storage_cdc_fifo_out_last;
 reg  analyzer_storage_wait = 1'd0;
@@ -368,13 +373,13 @@ wire csrbank0_trigger_done_r;
 reg  csrbank0_trigger_done_we = 1'd0;
 wire csrbank0_trigger_done_w;
 reg  csrbank0_trigger_mem_mask0_re = 1'd0;
-wire [11:0] csrbank0_trigger_mem_mask0_r;
+wire [15:0] csrbank0_trigger_mem_mask0_r;
 reg  csrbank0_trigger_mem_mask0_we = 1'd0;
-wire [11:0] csrbank0_trigger_mem_mask0_w;
+wire [15:0] csrbank0_trigger_mem_mask0_w;
 reg  csrbank0_trigger_mem_value0_re = 1'd0;
-wire [11:0] csrbank0_trigger_mem_value0_r;
+wire [15:0] csrbank0_trigger_mem_value0_r;
 reg  csrbank0_trigger_mem_value0_we = 1'd0;
-wire [11:0] csrbank0_trigger_mem_value0_w;
+wire [15:0] csrbank0_trigger_mem_value0_w;
 reg  csrbank0_trigger_mem_full_re = 1'd0;
 wire csrbank0_trigger_mem_full_r;
 reg  csrbank0_trigger_mem_full_we = 1'd0;
@@ -404,9 +409,9 @@ wire csrbank0_storage_mem_valid_r;
 reg  csrbank0_storage_mem_valid_we = 1'd0;
 wire csrbank0_storage_mem_valid_w;
 reg  csrbank0_storage_mem_data_re = 1'd0;
-wire [11:0] csrbank0_storage_mem_data_r;
+wire [15:0] csrbank0_storage_mem_data_r;
 reg  csrbank0_storage_mem_data_we = 1'd0;
-wire [11:0] csrbank0_storage_mem_data_w;
+wire [15:0] csrbank0_storage_mem_data_w;
 wire csrbank0_sel;
 wire [13:0] interface1_bank_bus_adr;
 wire interface1_bank_bus_we;
@@ -466,15 +471,15 @@ assign sys_clk = clk_clksys;
 assign sys_rst = rst;
 assign bus_errors_status = bus_errors;
 always @(*) begin
+	tx_enable <= 1'd0;
+	rs232phytx_next_state <= 1'd0;
 	tx_count_rs232phytx_next_value0 <= 4'd0;
 	tx_count_rs232phytx_next_value_ce0 <= 1'd0;
-	tx_enable <= 1'd0;
 	uart_bridge_tx_rs232phytx_next_value1 <= 1'd0;
 	uart_bridge_tx_rs232phytx_next_value_ce1 <= 1'd0;
+	tx_sink_ready <= 1'd0;
 	tx_data_rs232phytx_next_value2 <= 8'd0;
 	tx_data_rs232phytx_next_value_ce2 <= 1'd0;
-	tx_sink_ready <= 1'd0;
-	rs232phytx_next_state <= 1'd0;
 	rs232phytx_next_state <= rs232phytx_state;
 	case (rs232phytx_state)
 		1'd1: begin
@@ -509,10 +514,10 @@ always @(*) begin
 end
 always @(*) begin
 	rx_source_payload_data <= 8'd0;
+	rx_enable <= 1'd0;
 	rs232phyrx_next_state <= 1'd0;
 	rx_count_rs232phyrx_next_value0 <= 4'd0;
 	rx_count_rs232phyrx_next_value_ce0 <= 1'd0;
-	rx_enable <= 1'd0;
 	rx_data_rs232phyrx_next_value1 <= 8'd0;
 	rx_data_rs232phyrx_next_value_ce1 <= 1'd0;
 	rx_source_valid <= 1'd0;
@@ -565,13 +570,15 @@ always @(*) begin
 end
 assign tx_sink_last = ((bytes_count == 2'd3) & (words_count == (length - 1'd1)));
 always @(*) begin
+	address_next_value4 <= 32'd0;
+	address_next_value_ce4 <= 1'd0;
 	incr_next_value5 <= 1'd0;
-	incr_next_value_ce5 <= 1'd0;
 	wishbone_cyc <= 1'd0;
-	data_next_value6 <= 32'd0;
+	incr_next_value_ce5 <= 1'd0;
 	wishbone_stb <= 1'd0;
-	data_next_value_ce6 <= 1'd0;
 	wishbone_we <= 1'd0;
+	data_next_value6 <= 32'd0;
+	data_next_value_ce6 <= 1'd0;
 	rx_source_ready <= 1'd0;
 	uartbone_next_state <= 3'd0;
 	bytes_count_next_value0 <= 2'd0;
@@ -579,13 +586,11 @@ always @(*) begin
 	words_count_next_value1 <= 8'd0;
 	words_count_next_value_ce1 <= 1'd0;
 	cmd_next_value2 <= 8'd0;
+	tx_sink_valid <= 1'd0;
 	cmd_next_value_ce2 <= 1'd0;
+	is_ongoing <= 1'd0;
 	length_next_value3 <= 8'd0;
 	length_next_value_ce3 <= 1'd0;
-	tx_sink_valid <= 1'd0;
-	address_next_value4 <= 32'd0;
-	address_next_value_ce4 <= 1'd0;
-	is_ongoing <= 1'd0;
 	uartbone_next_state <= uartbone_state;
 	case (uartbone_state)
 		1'd1: begin
@@ -697,14 +702,14 @@ end
 assign done = (count == 1'd0);
 assign scope_clk = sys_clk;
 assign analyzer_mux_valid = 1'd1;
-assign analyzer_mux_payload_data = {signals_signals};
+assign analyzer_mux_payload_data = {signals_extra, signals_clk, signals_cmd_oe, signals_cmd, signals_data_oe, signals_data};
 always @(*) begin
-	analyzer_mux_source_valid <= 1'd0;
 	analyzer_mux_source_first <= 1'd0;
-	analyzer_mux_source_last <= 1'd0;
 	analyzer_mux_ready <= 1'd0;
-	analyzer_mux_source_payload_data <= 12'd0;
+	analyzer_mux_source_last <= 1'd0;
+	analyzer_mux_source_payload_data <= 16'd0;
 	analyzer_mux_source_payload_hit <= 1'd0;
+	analyzer_mux_source_valid <= 1'd0;
 	case (analyzer_mux_value)
 		1'd0: begin
 			analyzer_mux_source_valid <= analyzer_mux_valid;
@@ -857,19 +862,19 @@ end
 assign analyzer_storage_cdc_graycounter1_q_next = (analyzer_storage_cdc_graycounter1_q_next_binary ^ analyzer_storage_cdc_graycounter1_q_next_binary[2:1]);
 assign analyzer_storage_done1 = (analyzer_storage_count == 1'd0);
 always @(*) begin
+	analyzer_storage_cdc_sink_first <= 1'd0;
+	analyzer_storage_done0 <= 1'd0;
+	analyzer_storage_cdc_sink_last <= 1'd0;
+	analyzer_storage_cdc_sink_payload_data <= 16'd0;
+	analyzer_storage_sink_sink_ready <= 1'd0;
+	analyzer_storage_mem_sink_valid <= 1'd0;
 	analyzer_storage_mem_sink_first <= 1'd0;
 	analyzer_storage_mem_sink_last <= 1'd0;
 	analyzer_storage_wait <= 1'd0;
-	analyzer_storage_mem_sink_payload_data <= 12'd0;
-	analyzer_storage_mem_sink_valid <= 1'd0;
+	analyzer_storage_mem_sink_payload_data <= 16'd0;
 	analyzer_storage_mem_source_ready <= 1'd0;
 	litescopeanalyzer_next_state <= 2'd0;
 	analyzer_storage_cdc_sink_valid <= 1'd0;
-	analyzer_storage_cdc_sink_last <= 1'd0;
-	analyzer_storage_cdc_sink_first <= 1'd0;
-	analyzer_storage_done0 <= 1'd0;
-	analyzer_storage_cdc_sink_payload_data <= 12'd0;
-	analyzer_storage_sink_sink_ready <= 1'd0;
 	litescopeanalyzer_next_state <= litescopeanalyzer_state;
 	case (litescopeanalyzer_state)
 		1'd1: begin
@@ -934,12 +939,12 @@ assign analyzer_storage_sink_sink_last = analyzer_subsampler_source_last;
 assign analyzer_storage_sink_sink_payload_data = analyzer_subsampler_source_payload_data;
 assign analyzer_storage_sink_sink_payload_hit = analyzer_subsampler_source_payload_hit;
 always @(*) begin
-	next_state <= 1'd0;
-	basesoc_adr <= 14'd0;
 	basesoc_wishbone_ack <= 1'd0;
-	basesoc_we <= 1'd0;
 	basesoc_dat_w <= 32'd0;
 	basesoc_wishbone_dat_r <= 32'd0;
+	next_state <= 1'd0;
+	basesoc_adr <= 14'd0;
+	basesoc_we <= 1'd0;
 	next_state <= state;
 	case (state)
 		1'd1: begin
@@ -971,8 +976,8 @@ assign wishbone_err = basesoc_wishbone_err;
 assign csrbank0_sel = (interface0_bank_bus_adr[13:9] == 1'd0);
 assign csrbank0_mux_value0_r = interface0_bank_bus_dat_w[0];
 always @(*) begin
-	csrbank0_mux_value0_we <= 1'd0;
 	csrbank0_mux_value0_re <= 1'd0;
+	csrbank0_mux_value0_we <= 1'd0;
 	if ((csrbank0_sel & (interface0_bank_bus_adr[8:0] == 1'd0))) begin
 		csrbank0_mux_value0_re <= interface0_bank_bus_we;
 		csrbank0_mux_value0_we <= (~interface0_bank_bus_we);
@@ -980,8 +985,8 @@ always @(*) begin
 end
 assign csrbank0_trigger_enable0_r = interface0_bank_bus_dat_w[0];
 always @(*) begin
-	csrbank0_trigger_enable0_re <= 1'd0;
 	csrbank0_trigger_enable0_we <= 1'd0;
+	csrbank0_trigger_enable0_re <= 1'd0;
 	if ((csrbank0_sel & (interface0_bank_bus_adr[8:0] == 1'd1))) begin
 		csrbank0_trigger_enable0_re <= interface0_bank_bus_we;
 		csrbank0_trigger_enable0_we <= (~interface0_bank_bus_we);
@@ -1005,19 +1010,19 @@ always @(*) begin
 		analyzer_trigger_mem_write_we <= (~interface0_bank_bus_we);
 	end
 end
-assign csrbank0_trigger_mem_mask0_r = interface0_bank_bus_dat_w[11:0];
+assign csrbank0_trigger_mem_mask0_r = interface0_bank_bus_dat_w[15:0];
 always @(*) begin
-	csrbank0_trigger_mem_mask0_we <= 1'd0;
 	csrbank0_trigger_mem_mask0_re <= 1'd0;
+	csrbank0_trigger_mem_mask0_we <= 1'd0;
 	if ((csrbank0_sel & (interface0_bank_bus_adr[8:0] == 3'd4))) begin
 		csrbank0_trigger_mem_mask0_re <= interface0_bank_bus_we;
 		csrbank0_trigger_mem_mask0_we <= (~interface0_bank_bus_we);
 	end
 end
-assign csrbank0_trigger_mem_value0_r = interface0_bank_bus_dat_w[11:0];
+assign csrbank0_trigger_mem_value0_r = interface0_bank_bus_dat_w[15:0];
 always @(*) begin
-	csrbank0_trigger_mem_value0_re <= 1'd0;
 	csrbank0_trigger_mem_value0_we <= 1'd0;
+	csrbank0_trigger_mem_value0_re <= 1'd0;
 	if ((csrbank0_sel & (interface0_bank_bus_adr[8:0] == 3'd5))) begin
 		csrbank0_trigger_mem_value0_re <= interface0_bank_bus_we;
 		csrbank0_trigger_mem_value0_we <= (~interface0_bank_bus_we);
@@ -1034,8 +1039,8 @@ always @(*) begin
 end
 assign csrbank0_subsampler_value0_r = interface0_bank_bus_dat_w[15:0];
 always @(*) begin
-	csrbank0_subsampler_value0_we <= 1'd0;
 	csrbank0_subsampler_value0_re <= 1'd0;
+	csrbank0_subsampler_value0_we <= 1'd0;
 	if ((csrbank0_sel & (interface0_bank_bus_adr[8:0] == 3'd7))) begin
 		csrbank0_subsampler_value0_re <= interface0_bank_bus_we;
 		csrbank0_subsampler_value0_we <= (~interface0_bank_bus_we);
@@ -1043,8 +1048,8 @@ always @(*) begin
 end
 assign csrbank0_storage_enable0_r = interface0_bank_bus_dat_w[0];
 always @(*) begin
-	csrbank0_storage_enable0_re <= 1'd0;
 	csrbank0_storage_enable0_we <= 1'd0;
+	csrbank0_storage_enable0_re <= 1'd0;
 	if ((csrbank0_sel & (interface0_bank_bus_adr[8:0] == 4'd8))) begin
 		csrbank0_storage_enable0_re <= interface0_bank_bus_we;
 		csrbank0_storage_enable0_we <= (~interface0_bank_bus_we);
@@ -1061,8 +1066,8 @@ always @(*) begin
 end
 assign csrbank0_storage_length0_r = interface0_bank_bus_dat_w[11:0];
 always @(*) begin
-	csrbank0_storage_length0_we <= 1'd0;
 	csrbank0_storage_length0_re <= 1'd0;
+	csrbank0_storage_length0_we <= 1'd0;
 	if ((csrbank0_sel & (interface0_bank_bus_adr[8:0] == 4'd10))) begin
 		csrbank0_storage_length0_re <= interface0_bank_bus_we;
 		csrbank0_storage_length0_we <= (~interface0_bank_bus_we);
@@ -1070,8 +1075,8 @@ always @(*) begin
 end
 assign csrbank0_storage_offset0_r = interface0_bank_bus_dat_w[11:0];
 always @(*) begin
-	csrbank0_storage_offset0_re <= 1'd0;
 	csrbank0_storage_offset0_we <= 1'd0;
+	csrbank0_storage_offset0_re <= 1'd0;
 	if ((csrbank0_sel & (interface0_bank_bus_adr[8:0] == 4'd11))) begin
 		csrbank0_storage_offset0_re <= interface0_bank_bus_we;
 		csrbank0_storage_offset0_we <= (~interface0_bank_bus_we);
@@ -1086,10 +1091,10 @@ always @(*) begin
 		csrbank0_storage_mem_valid_we <= (~interface0_bank_bus_we);
 	end
 end
-assign csrbank0_storage_mem_data_r = interface0_bank_bus_dat_w[11:0];
+assign csrbank0_storage_mem_data_r = interface0_bank_bus_dat_w[15:0];
 always @(*) begin
-	csrbank0_storage_mem_data_we <= 1'd0;
 	csrbank0_storage_mem_data_re <= 1'd0;
+	csrbank0_storage_mem_data_we <= 1'd0;
 	if ((csrbank0_sel & (interface0_bank_bus_adr[8:0] == 4'd13))) begin
 		csrbank0_storage_mem_data_re <= interface0_bank_bus_we;
 		csrbank0_storage_mem_data_we <= (~interface0_bank_bus_we);
@@ -1099,8 +1104,8 @@ assign csrbank0_mux_value0_w = analyzer_mux_value_storage;
 assign csrbank0_trigger_enable0_w = analyzer_trigger_enable_storage;
 assign csrbank0_trigger_done_w = analyzer_trigger_done_status;
 assign analyzer_trigger_done_we = csrbank0_trigger_done_we;
-assign csrbank0_trigger_mem_mask0_w = analyzer_trigger_mem_mask_storage[11:0];
-assign csrbank0_trigger_mem_value0_w = analyzer_trigger_mem_value_storage[11:0];
+assign csrbank0_trigger_mem_mask0_w = analyzer_trigger_mem_mask_storage[15:0];
+assign csrbank0_trigger_mem_value0_w = analyzer_trigger_mem_value_storage[15:0];
 assign csrbank0_trigger_mem_full_w = analyzer_trigger_mem_full_status;
 assign analyzer_trigger_mem_full_we = csrbank0_trigger_mem_full_we;
 assign csrbank0_subsampler_value0_w = analyzer_subsampler_value_storage[15:0];
@@ -1111,13 +1116,13 @@ assign csrbank0_storage_length0_w = analyzer_storage_length_storage[11:0];
 assign csrbank0_storage_offset0_w = analyzer_storage_offset_storage[11:0];
 assign csrbank0_storage_mem_valid_w = analyzer_storage_mem_valid_status;
 assign analyzer_storage_mem_valid_we = csrbank0_storage_mem_valid_we;
-assign csrbank0_storage_mem_data_w = analyzer_storage_mem_data_status[11:0];
+assign csrbank0_storage_mem_data_w = analyzer_storage_mem_data_status[15:0];
 assign analyzer_storage_mem_data_we = csrbank0_storage_mem_data_we;
 assign csrbank1_sel = (interface1_bank_bus_adr[13:9] == 1'd1);
 assign csrbank1_reset0_r = interface1_bank_bus_dat_w[1:0];
 always @(*) begin
-	csrbank1_reset0_re <= 1'd0;
 	csrbank1_reset0_we <= 1'd0;
+	csrbank1_reset0_re <= 1'd0;
 	if ((csrbank1_sel & (interface1_bank_bus_adr[8:0] == 1'd0))) begin
 		csrbank1_reset0_re <= interface1_bank_bus_we;
 		csrbank1_reset0_we <= (~interface1_bank_bus_we);
@@ -1396,11 +1401,11 @@ always @(posedge sys_clk) begin
 	analyzer_trigger_enable_re <= csrbank0_trigger_enable0_re;
 	analyzer_trigger_done_re <= csrbank0_trigger_done_re;
 	if (csrbank0_trigger_mem_mask0_re) begin
-		analyzer_trigger_mem_mask_storage[11:0] <= csrbank0_trigger_mem_mask0_r;
+		analyzer_trigger_mem_mask_storage[15:0] <= csrbank0_trigger_mem_mask0_r;
 	end
 	analyzer_trigger_mem_mask_re <= csrbank0_trigger_mem_mask0_re;
 	if (csrbank0_trigger_mem_value0_re) begin
-		analyzer_trigger_mem_value_storage[11:0] <= csrbank0_trigger_mem_value0_r;
+		analyzer_trigger_mem_value_storage[15:0] <= csrbank0_trigger_mem_value0_r;
 	end
 	analyzer_trigger_mem_value_re <= csrbank0_trigger_mem_value0_re;
 	analyzer_trigger_mem_full_re <= csrbank0_trigger_mem_full_re;
@@ -1464,9 +1469,9 @@ always @(posedge sys_clk) begin
 		analyzer_trigger_enable_storage <= 1'd0;
 		analyzer_trigger_enable_re <= 1'd0;
 		analyzer_trigger_done_re <= 1'd0;
-		analyzer_trigger_mem_mask_storage <= 12'd0;
+		analyzer_trigger_mem_mask_storage <= 16'd0;
 		analyzer_trigger_mem_mask_re <= 1'd0;
-		analyzer_trigger_mem_value_storage <= 12'd0;
+		analyzer_trigger_mem_value_storage <= 16'd0;
 		analyzer_trigger_mem_value_re <= 1'd0;
 		analyzer_trigger_mem_full_re <= 1'd0;
 		analyzer_trigger_mem_graycounter0_q <= 5'd0;
@@ -1507,13 +1512,13 @@ end
 //------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------
-// Memory storage: 16-words x 26-bit
+// Memory storage: 16-words x 34-bit
 //------------------------------------------------------------------------------
-// Port 0 | Read: Sync  | Write: Sync | Mode: Read-First  | Write-Granularity: 26 
+// Port 0 | Read: Sync  | Write: Sync | Mode: Read-First  | Write-Granularity: 34 
 // Port 1 | Read: Sync  | Write: ---- | 
-reg [25:0] storage[0:15];
-reg [25:0] storage_dat0;
-reg [25:0] storage_dat1;
+reg [33:0] storage[0:15];
+reg [33:0] storage_dat0;
+reg [33:0] storage_dat1;
 always @(posedge sys_clk) begin
 	if (analyzer_trigger_mem_wrport_we)
 		storage[analyzer_trigger_mem_wrport_adr] <= analyzer_trigger_mem_wrport_dat_w;
@@ -1527,13 +1532,13 @@ assign analyzer_trigger_mem_rdport_dat_r = storage_dat1;
 
 
 //------------------------------------------------------------------------------
-// Memory storage_1: 2048-words x 14-bit
+// Memory storage_1: 2048-words x 18-bit
 //------------------------------------------------------------------------------
-// Port 0 | Read: Sync  | Write: Sync | Mode: Read-First  | Write-Granularity: 14 
+// Port 0 | Read: Sync  | Write: Sync | Mode: Read-First  | Write-Granularity: 18 
 // Port 1 | Read: Sync  | Write: ---- | 
-reg [13:0] storage_1[0:2047];
-reg [13:0] storage_1_dat0;
-reg [13:0] storage_1_dat1;
+reg [17:0] storage_1[0:2047];
+reg [17:0] storage_1_dat0;
+reg [17:0] storage_1_dat1;
 always @(posedge scope_clk) begin
 	if (analyzer_storage_mem_wrport_we)
 		storage_1[analyzer_storage_mem_wrport_adr] <= analyzer_storage_mem_wrport_dat_w;
@@ -1548,13 +1553,13 @@ assign analyzer_storage_mem_rdport_dat_r = storage_1_dat1;
 
 
 //------------------------------------------------------------------------------
-// Memory storage_2: 4-words x 14-bit
+// Memory storage_2: 4-words x 18-bit
 //------------------------------------------------------------------------------
-// Port 0 | Read: Sync  | Write: Sync | Mode: Read-First  | Write-Granularity: 14 
+// Port 0 | Read: Sync  | Write: Sync | Mode: Read-First  | Write-Granularity: 18 
 // Port 1 | Read: Sync  | Write: ---- | 
-reg [13:0] storage_2[0:3];
-reg [13:0] storage_2_dat0;
-reg [13:0] storage_2_dat1;
+reg [17:0] storage_2[0:3];
+reg [17:0] storage_2_dat0;
+reg [17:0] storage_2_dat1;
 always @(posedge scope_clk) begin
 	if (analyzer_storage_cdc_wrport_we)
 		storage_2[analyzer_storage_cdc_wrport_adr] <= analyzer_storage_cdc_wrport_dat_w;
@@ -1570,5 +1575,5 @@ assign analyzer_storage_cdc_rdport_dat_r = storage_2_dat1;
 endmodule
 
 // -----------------------------------------------------------------------------
-//  Auto-Generated by LiteX on 2021-12-08 16:36:59.
+//  Auto-Generated by LiteX on 2021-12-09 16:07:09.
 //------------------------------------------------------------------------------

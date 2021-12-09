@@ -90,7 +90,12 @@ _io = [
         Subsignal("rx", Pins(1)),
     ),
     ("signals", 0,
-        Subsignal("signals", Pins(12)),
+        Subsignal("data", Pins(4)),
+        Subsignal("data_oe", Pins(1)),
+        Subsignal("cmd", Pins(1)),
+        Subsignal("cmd_oe", Pins(1)),
+        Subsignal("clk", Pins(1)),
+        Subsignal("extra", Pins(8)),
     ),
 ]
 
