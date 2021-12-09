@@ -216,6 +216,9 @@ begin
             DCACHE_NUM_LINES   => 4,
             ICACHE_NUM_WAYS    => 1,
             DCACHE_NUM_WAYS    => 1,
+            -- is just bram
+            ICACHE_LINE_SIZE   => 1024,
+            DCACHE_LINE_SIZE   => 1024,
 
             HAS_SHORT_MULT     => true,
             NGPIO              => NGPIO
@@ -412,7 +415,14 @@ begin
                 DRAM_DLINES => 16,
                 DRAM_PORT_WIDTH => 128,
                 PAYLOAD_FILE => RAM_INIT_FILE,
-                PAYLOAD_SIZE => PAYLOAD_SIZE
+                PAYLOAD_SIZE => PAYLOAD_SIZE,
+
+                -- shrink
+                NUM_LINES => 2,
+                NUM_WAYS => 1,
+                -- these are cheap brams
+                STOREQ_DEPTH => 128,
+                LINE_SIZE => 1024
                 )
             port map(
                 clk_in          => ext_clk,

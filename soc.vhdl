@@ -80,10 +80,12 @@ entity soc is
         ICACHE_NUM_LINES   : natural := 64;
         ICACHE_NUM_WAYS    : natural := 2;
         ICACHE_TLB_SIZE    : natural := 64;
+        ICACHE_LINE_SIZE   : natural := 64;
         DCACHE_NUM_LINES   : natural := 64;
         DCACHE_NUM_WAYS    : natural := 2;
         DCACHE_TLB_SET_SIZE : natural := 64;
         DCACHE_TLB_NUM_WAYS : natural := 2;
+        DCACHE_LINE_SIZE   : natural := 64;
         HAS_SD_CARD        : boolean := false;
         HAS_GPIO           : boolean := false;
         NGPIO              : natural := 32
@@ -352,10 +354,12 @@ begin
             ICACHE_NUM_LINES => ICACHE_NUM_LINES,
             ICACHE_NUM_WAYS => ICACHE_NUM_WAYS,
             ICACHE_TLB_SIZE => ICACHE_TLB_SIZE,
+            ICACHE_LINE_SIZE => ICACHE_LINE_SIZE,
             DCACHE_NUM_LINES => DCACHE_NUM_LINES,
             DCACHE_NUM_WAYS => DCACHE_NUM_WAYS,
             DCACHE_TLB_SET_SIZE => DCACHE_TLB_SET_SIZE,
-            DCACHE_TLB_NUM_WAYS => DCACHE_TLB_NUM_WAYS
+            DCACHE_TLB_NUM_WAYS => DCACHE_TLB_NUM_WAYS,
+            DCACHE_LINE_SIZE => DCACHE_LINE_SIZE
 	    )
 	port map(
 	    clk => system_clk,

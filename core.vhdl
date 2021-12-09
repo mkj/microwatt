@@ -19,10 +19,12 @@ entity core is
         ICACHE_NUM_LINES : natural := 64;
         ICACHE_NUM_WAYS : natural := 2;
         ICACHE_TLB_SIZE : natural := 64;
+        ICACHE_LINE_SIZE : natural := 64;
         DCACHE_NUM_LINES : natural := 64;
         DCACHE_NUM_WAYS : natural := 2;
         DCACHE_TLB_SET_SIZE : natural := 64;
-        DCACHE_TLB_NUM_WAYS : natural := 2
+        DCACHE_TLB_NUM_WAYS : natural := 2;
+        DCACHE_LINE_SIZE : natural := 64
         );
     port (
         clk          : in std_ulogic;
@@ -232,7 +234,7 @@ begin
     icache_0: entity work.icache
         generic map(
             SIM => SIM,
-            LINE_SIZE => 64,
+            LINE_SIZE => ICACHE_LINE_SIZE,
             NUM_LINES => ICACHE_NUM_LINES,
             NUM_WAYS => ICACHE_NUM_WAYS,
             TLB_SIZE => ICACHE_TLB_SIZE,
@@ -423,7 +425,7 @@ begin
 
     dcache_0: entity work.dcache
         generic map(
-            LINE_SIZE => 64,
+            LINE_SIZE => DCACHE_LINE_SIZE,
             NUM_LINES => DCACHE_NUM_LINES,
             NUM_WAYS => DCACHE_NUM_WAYS,
             TLB_SET_SIZE => DCACHE_TLB_SET_SIZE,
