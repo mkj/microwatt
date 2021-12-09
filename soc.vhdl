@@ -117,6 +117,9 @@ entity soc is
 	uart0_txd    : out std_ulogic;
 	uart0_rxd    : in  std_ulogic := '0';
 
+    --  for scope
+    uart0_scope : out std_ulogic_vector(7 downto 0);
+
 	-- UART1 signals:
 	uart1_txd    : out std_ulogic;
 	uart1_rxd    : in  std_ulogic := '0';
@@ -847,6 +850,7 @@ begin
         wb_uart0_out.stall <= not wb_uart0_out.ack;
     end generate;
 
+    uart0_scope <= uart0_dat8;
 
     uart0_valentyusb : if HAS_UARTUSB generate
         component valentyusb port (

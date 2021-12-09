@@ -1,3 +1,8 @@
-config,None,data_width,12
+config,None,data_width,16
 config,None,depth,2048
-signal,0,signals_signals,12
+signal,0,signals_data,4
+signal,0,signals_data_oe,1
+signal,0,signals_cmd,1
+signal,0,signals_cmd_oe,1
+signal,0,signals_clk,1
+signal,0,signals_extra,8
