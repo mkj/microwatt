@@ -8,7 +8,7 @@ VERILATOR_FLAGS=-O3 -Wno-fatal -Wno-CASEOVERLAP -Wno-UNOPTFLAT #--trace
 
 # fpga-toolchain builds have ghdl plugin built in, otherwise need
 # -m ghdl.so
-GHDLSYNTH ?= $(shell (yosys -H | grep -q ghdl) || echo -m ghdl.so)
+GHDLSYNTH ?= $(shell (yosys -H | grep -q ghdl) || echo -m ghdl)
 YOSYS     ?= yosys
 NEXTPNR   ?= nextpnr-ecp5
 ECPPACK   ?= ecppack
