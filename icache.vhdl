@@ -374,7 +374,8 @@ begin
 	way: entity work.cache_ram
 	    generic map (
 		ROW_BITS => ROW_BITS,
-		WIDTH => ROW_SIZE_BITS
+		WIDTH => ROW_SIZE_BITS,
+		BYTE_WRSEL => false
 		)
 	    port map (
 		clk     => clk,
