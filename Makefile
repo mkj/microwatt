@@ -162,10 +162,6 @@ RAM_INIT_FILE ?=hello_world/hello_world.hex
 
 FPGA_TARGET ?= ORANGE-CRAB-0.21
 
-# FIXME: icache RAMs aren't being inferrenced as block RAMs on ECP5
-# with yosys, so make it smaller for now as a workaround.
-ICACHE_NUM_LINES=4
-
 clkgen=fpga/clk_gen_ecp5.vhd
 toplevel=fpga/top-generic.vhdl
 dmi_dtm=dmi_dtm_dummy.vhdl
@@ -229,7 +225,7 @@ USE_LITEDRAM=true
 endif
 
 GHDL_IMAGE_GENERICS=-gMEMORY_SIZE=$(MEMORY_SIZE) -gRAM_INIT_FILE=$(RAM_INIT_FILE) \
-	-gRESET_LOW=$(RESET_LOW) -gCLK_INPUT=$(CLK_INPUT) -gCLK_FREQUENCY=$(CLK_FREQUENCY) -gICACHE_NUM_LINES=$(ICACHE_NUM_LINES) \
+	-gRESET_LOW=$(RESET_LOW) -gCLK_INPUT=$(CLK_INPUT) -gCLK_FREQUENCY=$(CLK_FREQUENCY) \
 	-gUSE_LITEDRAM=$(USE_LITEDRAM)
 
 ifeq ($(FPGA_TARGET), verilator)

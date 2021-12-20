@@ -26,7 +26,7 @@ entity toplevel is
         HAS_UARTUSB        : boolean  := false;
         USE_LITESDCARD     : boolean := true;
         USE_LITESCOPE      : boolean := true;
-        ICACHE_NUM_LINES   : natural := 64;
+        ICACHE_NUM_LINES   : natural := 32;
         NGPIO              : natural := 0
         );
     port(
