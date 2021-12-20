@@ -8,6 +8,7 @@ entity cache_ram is
         ROW_BITS : integer := 16;
         WIDTH    : integer := 64;
         TRACE    : boolean := false;
+        BYTE_WRSEL : boolean := true;
         ADD_BUF  : boolean := false
         );
 
@@ -49,14 +50,20 @@ begin
                         " dat:" & to_hstring(wr_data);
                 end if;
             end if;
-            for i in 0 to WIDTH/8-1 loop
-                lbit := i * 8;
-                mbit := lbit + 7;
-                widx := to_integer(unsigned(wr_addr));
-                if wr_sel(i) = '1' then
-                    ram(widx)(mbit downto lbit) <= wr_data(mbit downto lbit);
+            widx := to_integer(unsigned(wr_addr));
+            if BYTE_WRSEL then
+                for i in 0 to WIDTH/8-1 loop
+                    lbit := i * 8;
+                    mbit := lbit + 7;
+                    if wr_sel(i) = '1' then
+                        ram(widx)(mbit downto lbit) <= wr_data(mbit downto lbit);
+                    end if;
+                end loop;
+            else
+                if wr_sel(0) = '1' then
+                    ram(widx) <= wr_data;
                 end if;
-            end loop;
+            end if;
             if rd_en = '1' then
                 rd_data0 <= ram(to_integer(unsigned(rd_addr)));
                 if TRACE then
