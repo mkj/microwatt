@@ -12,7 +12,6 @@ tests/*/*.bin
 tests/*/*.hex
 tests/*/*.elf
 TAGS
-litedram/build/*
 liteeth/build/*
 litesdcard/build/*
 obj_dir/*

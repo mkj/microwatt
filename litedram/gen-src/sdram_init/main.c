@@ -234,14 +234,39 @@ static void boot_sdram(void)
 	flush_cpu_icache();
 }
 
+static void usemem(void) {
+	volatile uint64_t f;
+	volatile uint64_t *z = &f;
+	*z = 0x3132333435363738ULL;
+
+	// swap these two lines then it works.
+	uint64_t r = *z;
+	putchar('r');
+
+	putchar(*((char*)(&r)));
+	putchar(*((char*)(&r) + 4));
+	putchar('\n');
+
+	// confirming putchar works OK.
+	uint64_t g;
+	uint64_t *y = &g;
+	*y = 0x3132333435363738ULL;
+	putchar('y');
+	putchar(*((char*)y));
+	putchar(*((char*)y + 4));
+	putchar('\n');
+}
+
 uint64_t main(void)
 {
 	unsigned long ftr, val;
 	unsigned int fl_off = 0;
 	bool try_flash = false;
 
+
 	/* Init the UART */
 	console_init();
+	usemem();
 
 	printf("\n\nWelcome to Microwatt !\n\n");
 
